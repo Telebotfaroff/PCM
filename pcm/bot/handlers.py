@@ -1,4 +1,4 @@
-"""Owner-only Telegram handlers for WatchHentai series discovery and downloads."""
+"""Owner-only Telegram handlers routed through the provider registry."""
 from __future__ import annotations
 
 import re
@@ -12,9 +12,7 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from pcm.bot.access import owner_filter
 from pcm.bot.ytdlp_handler import register_ytdlp_handler
 from pcm.core.config import Settings
-from pcm.providers.watchhentai import classify_url
-from pcm.providers.watchhentai_resolver import ProviderResolveError, WatchHentaiResolver
-from pcm.providers.watchhentai_series import discover_episodes
+from pcm.providers.registry import get_provider, get_provider_by_name
 from pcm.resolver.url_model import URLValidationError, parse_url
 from pcm.transfers.downloader import download_media
 
@@ -27,7 +25,6 @@ def register_handlers(app: Client, owner_id: int) -> None:
     register_ytdlp_handler(app, owner_id)
     owner = owner_filter(owner_id)
     private_owner = filters.private & owner
-    resolver = WatchHentaiResolver()
     choices: dict[str, dict] = {}
     menus: dict[str, dict] = {}
 
@@ -63,12 +60,15 @@ def register_handlers(app: Client, owner_id: int) -> None:
     async def resolve_episode(message: Message, url: str) -> None:
         try:
             parsed = parse_url(url)
-            if parsed.hostname.lower() not in {"watchhentai.net", "www.watchhentai.net"}:
-                raise ProviderResolveError("Only WatchHentai URLs are supported.")
-            page_type = classify_url(parsed.normalized)
+            provider = get_provider(parsed.normalized)
+            if provider is None:
+                raise ValueError("No provider is registered for this URL.")
+            page_type = provider.classify_url(parsed.normalized)
             if page_type not in {"series", "episode"}:
-                raise ProviderResolveError("Send a WatchHentai /series/... or /videos/... URL.")
-        except (URLValidationError, ProviderResolveError) as exc:
+                raise ValueError(
+                    f"{provider.display_name} URL must be a supported episode or series page."
+                )
+        except (URLValidationError, ValueError) as exc:
             await message.reply_text(f"❌ {exc}")
             return
 
@@ -78,20 +78,25 @@ def register_handlers(app: Client, owner_id: int) -> None:
         try:
             if page_type == "episode":
                 # An episode URL means exactly that episode. Never discover or enqueue siblings.
-                result = await resolver.resolve(parsed.normalized)
+                result = await provider.resolve(parsed.normalized)
                 title = result["page"].get("title") or "Episode"
                 episodes = [{"url": parsed.normalized, "title": title}]
             else:
-                episodes = await discover_episodes(parsed.normalized)
+                episodes = await provider.discover_episodes(parsed.normalized)
                 if not episodes:
                     raise ValueError("No episode links were found on this series page.")
                 # Resolve one episode to confirm the series entries are downloadable.
-                first_result = await resolver.resolve(episodes[0]["url"])
+                first_result = await provider.resolve(episodes[0]["url"])
                 title = first_result["page"].get("title") or episodes[0]["title"]
                 episodes[0]["title"] = title
 
             token = secrets.token_urlsafe(8)
-            menus[token] = {"episodes": episodes, "series_title": title, "is_series": page_type == "series"}
+            menus[token] = {
+                "episodes": episodes,
+                "series_title": title,
+                "is_series": page_type == "series",
+                "provider": provider.name,
+            }
             buttons = [InlineKeyboardButton(
                 "⬇ Download episode" if page_type == "episode" else "⬇ Choose single episode",
                 callback_data=f"pcm_menu:{token}",
@@ -132,15 +137,17 @@ def register_handlers(app: Client, owner_id: int) -> None:
         except URLValidationError as exc:
             await message.reply_text(f"❌ URL rejected: {exc}")
             return
-        if (
-            parsed.hostname.lower() in {"watchhentai.net", "www.watchhentai.net"}
-            and classify_url(parsed.normalized) in {"series", "episode"}
-        ):
+        provider = get_provider(parsed.normalized)
+        if provider and provider.classify_url(parsed.normalized) in {"series", "episode"}:
             await resolve_episode(message, candidate)
             return
         await message.reply_text(
             f"Validated: {parsed.hostname} ({parsed.scheme.upper()}).\n"
-            "Episode discovery is enabled for WatchHentai series and episode URLs."
+            + (
+                f"{provider.display_name} recognizes this host, but this URL is not a supported page."
+                if provider
+                else "No installed provider supports this URL yet."
+            )
         )
 
     @app.on_callback_query(filters.regex(r"^pcm_menu:") & owner)
@@ -177,7 +184,10 @@ def register_handlers(app: Client, owner_id: int) -> None:
         await query.answer("Resolving episode…")
         status = await query.message.reply_text(f"🔎 Resolving {episode['title'][:100]}…")
         try:
-            result = await resolver.resolve(episode["url"])
+            provider = get_provider_by_name(menus[token]["provider"])
+            if provider is None:
+                raise RuntimeError("The provider for this menu is no longer registered.")
+            result = await provider.resolve(episode["url"])
             title = result["page"].get("title") or episode["title"]
             buttons = []
             for source_index, source in enumerate(result["sources"][:8]):
@@ -185,6 +195,7 @@ def register_handlers(app: Client, owner_id: int) -> None:
                 choices[choice_token] = {
                     "url": episode["url"], "label": source["label"],
                     "title": title, "source_index": source_index,
+                    "provider": provider.name,
                 }
                 buttons.append(InlineKeyboardButton(
                     f"⬇ {source['label']}", callback_data=f"pcm_dl:{choice_token}",
@@ -196,10 +207,20 @@ def register_handlers(app: Client, owner_id: int) -> None:
         except Exception as exc:
             await status.edit_text(f"❌ Could not resolve episode: {str(exc)[:600]}")
 
-    async def download_one(chat_id: int, status, episode_url: str, title: str, requested_label: str | None = None) -> None:
+    async def download_one(
+        chat_id: int,
+        status,
+        provider_name: str,
+        episode_url: str,
+        title: str,
+        requested_label: str | None = None,
+    ) -> None:
         output: Path | None = None
         try:
-            result = await resolver.resolve(episode_url)
+            provider = get_provider_by_name(provider_name)
+            if provider is None:
+                raise RuntimeError(f"Provider is not registered: {provider_name}")
+            result = await provider.resolve(episode_url)
             sources = result["sources"]
             source = None
             if requested_label:
@@ -269,7 +290,10 @@ def register_handlers(app: Client, owner_id: int) -> None:
         for index, episode in enumerate(episodes, 1):
             await summary.edit_text(f"📚 Episode {index}/{len(episodes)}\n{episode['title'][:150]}\nPreparing…")
             try:
-                await download_one(query.message.chat.id, summary, episode["url"], episode["title"])
+                await download_one(
+                    query.message.chat.id, summary, menu["provider"],
+                    episode["url"], episode["title"],
+                )
                 succeeded += 1
             except Exception as exc:
                 failed.append(f"{episode['title'][:80]}: {str(exc)[:120]}")
@@ -293,7 +317,7 @@ def register_handlers(app: Client, owner_id: int) -> None:
         status = await query.message.reply_text(f"📥 Preparing {choice['title'][:100]}…")
         try:
             await download_one(
-                query.message.chat.id, status, choice["url"],
+                query.message.chat.id, status, choice["provider"], choice["url"],
                 choice["title"], choice["label"],
             )
         except Exception as exc:
