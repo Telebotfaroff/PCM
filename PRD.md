@@ -416,5 +416,140 @@ The first coding change should establish the Python project skeleton, configurat
 - Do not add unrelated databases or services without a deliberate decision.
 
 ---
+## 18. v1.2 Enhancements — Queue Intelligence, Recovery, and Operations
 
-**End of PRD — Draft v1.1 (Python + Pyrogram + Colab)**
+This section extends existing requirements without removing the Python + Pyrogram + Google Colab initial stack or existing resolver, provider, download, upload, and security requirements. Where requirements overlap, use the more specific acceptance criteria below.
+
+### 18.1 Smart Queue Controls
+
+- **FR-070 Pause and resume:** Add /pause JOB_ID and /resume JOB_ID. Pause is cooperative and stage-aware: stop scheduling new work immediately, ask supported download processes to pause, and defer upload-stage pauses when the destination API cannot safely pause. Report when a pause is requested but not yet safe.
+- **FR-071 Priority and ordering:** Support normal and high priority for owner-submitted jobs, with FIFO ordering within each priority. Prevent starvation by periodically allowing older normal-priority jobs to run.
+- **FR-072 Stage-specific retry:** Retry only the failed stage where possible. A failed GoFile upload must not trigger another download if the verified artifact is still available.
+- **FR-073 Retry policy:** Use capped exponential backoff with jitter for transient failures; do not automatically retry invalid input, unsupported media, permanent authentication failures, or prohibited URLs.
+- **FR-074 Queue visibility:** /queue shows position, stage, elapsed time, retry count, and destination status. Batch jobs have a parent batch ID and independent child job IDs.
+- **FR-075 Concurrency configuration:** Configure download and upload concurrency separately. Concurrency is a maximum, not a promise: the resource manager may lower it when memory, disk, network, or provider limits require.
+- **FR-076 Fairness and backpressure:** Do not start new downloads if the upload backlog, reserved disk requirement, or memory pressure exceeds configured thresholds.
+
+### 18.2 Persistent Job History and Restart Recovery
+
+- **FR-080 Job event history:** Persist job creation, stage changes, pause/resume/cancel requests, retries, destination outcomes, and sanitized error summaries with timestamps.
+- **FR-081 Artifact manifest:** Record safe artifact metadata such as path or remote storage key, byte size, checksum when available, MIME/container information, creation time, and retention expiry. Never treat an ephemeral signed media URL as a durable artifact.
+- **FR-082 Durable store:** Job records and leases must survive a Colab VM reset. Select and configure a remote transactional database before relying on cross-runtime recovery. Local SQLite may be used for development/tests only unless its durability is explicitly provided elsewhere.
+- **FR-083 Recovery reconciliation:** On startup, compare persisted job state with actual available artifacts and destination confirmations. Mark ambiguous upload outcomes as recovery_needed and reconcile before retrying to avoid duplicate uploads where possible.
+- **FR-084 Lease ownership:** Job claims use atomic leases with expiry and worker identity. Heartbeats renew leases. A stale worker cannot continue to mutate a job after losing its lease.
+- **FR-085 History retention:** Configure retention separately for job metadata, logs, temporary files, and media artifacts. Provide an owner-triggered cleanup command or documented cleanup task; preserve job outcomes without keeping media indefinitely.
+- **FR-086 Recovery guarantee wording:** Promise best-effort recovery based on persisted state and destination capabilities, not exactly-once execution when a third-party upload API cannot prove whether an operation completed.
+
+### 18.3 Batch URLs and Duplicate Detection
+
+- **FR-090 Batch intake:** Parse multiple URLs from one message and create a parent batch with one child job per normalized URL. Return a concise summary and allow per-child inspection, cancellation, and retry.
+- **FR-091 Batch limits:** Enforce configurable maximum URLs per message and maximum queued jobs per user. Reject or ask for confirmation before accepting oversized batches.
+- **FR-092 Canonical identity:** Normalize scheme/host casing and safe URL components; remove only known tracking parameters. Preserve query parameters required for signed links, access, variants, or share identifiers.
+- **FR-093 Two-layer deduplication:** First detect likely duplicates by canonical source identity; when files are available, optionally compare size and cryptographic hash. Do not merge jobs solely because titles or file sizes match.
+- **FR-094 Duplicate policy:** Support configurable skip, attach-to-existing-job, or force-separate-job behavior. Default to attaching to an active/completed job only when source identity and permissions make that safe.
+- **FR-095 Cache separation:** Keep short-lived resolver metadata caches separate from durable job history. Apply TTLs and never reuse expired signed URLs, cookies, or IP-bound media sources.
+- **FR-096 Batch reporting:** Report completed, failed, skipped, cancelled, and partial-success counts, plus a command to inspect child jobs.
+
+### 18.4 Provider Health Scoring and Fallback
+
+- **FR-100 Provider telemetry:** Track attempts, successful resolutions, validated sources, successful downloads, timeout rates, typed failure categories, and recent latency per provider and strategy.
+- **FR-101 Bounded health score:** Calculate a configurable rolling health score from recent outcomes, sample size, latency, and failure severity. Do not permanently penalize a provider based on one failure or treat a tiny sample as statistically conclusive.
+- **FR-102 Strategy ranking:** Rank candidates using exact provider match, declared capabilities, recent health, expected compatibility, authentication availability, and previous validation evidence. Health scoring must not override compatibility or security requirements.
+- **FR-103 Circuit breaker:** Temporarily deprioritize or open a provider circuit after a configurable run of transient failures; allow controlled half-open probes and restore normal ranking after recovery.
+- **FR-104 Typed fallback:** Record each attempt's provider, strategy, duration, and sanitized failure category. Try only compatible alternatives within a maximum attempts/time/resource budget.
+- **FR-105 Owner diagnostics:** /providers and /health show enabled status, recent success rate, recent latency, circuit state, and last error category without exposing credentials or private URLs.
+- **FR-106 Manual controls:** Allow the owner to enable/disable a provider and reset its circuit/health history. Manual disable always takes precedence over automated ranking.
+
+### 18.5 Destination Profiles and Per-Job Settings
+
+- **FR-110 Named profiles:** Allow the owner to define, edit, list, and select profiles such as telegram, gofile, and both. Profiles may include destination set, default quality, filename template, upload target, and retention policy.
+- **FR-111 Per-job overrides:** Each job can override quality, destination set, filename, and supported processing options without changing the saved profile.
+- **FR-112 Settings precedence:** Effective settings follow this order: explicit per-job choice > selected profile > global default > provider default. Display the effective destination and quality before a costly transfer when confirmation is enabled.
+- **FR-113 Secret references:** Profiles may reference credential names/configuration keys but must never store raw tokens, API keys, session strings, or cookies in profile JSON or job history.
+- **FR-114 Validation:** Validate profile values against provider capabilities before queueing. If a requested destination cannot accept the file or a setting is unsupported, explain the limitation and offer valid choices.
+- **FR-115 Profile persistence:** Persist profile definitions outside the Colab runtime and version changes so a job in progress retains a snapshot of its settings when created.
+- **FR-116 Destination independence:** Keep per-destination state, progress, attempts, and verified result links independent. A profile targeting multiple destinations must preserve partial success.
+
+### 18.6 Disk, Memory, and Bandwidth Manager
+
+- **FR-120 Resource sampling:** Periodically measure free disk space, process/system memory where available, active transfers, temporary artifact sizes, and recent throughput. Handle unavailable metrics gracefully.
+- **FR-121 Disk reservations:** Before starting a download, estimate/reserve required temporary space where possible. Reject, defer, or stream jobs that exceed configured capacity; do not start work that predictably exhausts disk.
+- **FR-122 Watermarks:** Define configurable low/high disk watermarks. Below the low watermark, stop new downloads and prioritize draining uploads/cleaning eligible artifacts; resume only after crossing the high watermark.
+- **FR-123 Memory protection:** Bound in-memory queues and buffers; stream large files rather than reading them fully into memory. Reduce concurrency or pause scheduling under sustained memory pressure.
+- **FR-124 Bandwidth policy:** Support optional global and per-transfer throughput limits where the underlying tool supports them. Do not promise exact rate limiting for providers/tools that do not expose it.
+- **FR-125 Adaptive concurrency:** Start from configured concurrency, then lower it on sustained resource pressure or repeated provider rate limits. Increase cautiously after a stable interval, within the configured maximum.
+- **FR-126 Temporary artifact lifecycle:** Associate each artifact with active jobs and upload consumers. Delete only when no active stage needs it and retention/partial-success policies allow cleanup.
+- **FR-127 Runtime budget:** Keep a configurable shutdown margin for Colab: stop accepting new heavy work when the operator initiates shutdown, checkpoint safely, and report jobs that cannot finish before the runtime ends. Do not depend on predicting Colab's actual termination time.
+- **FR-128 Resource telemetry:** /health reports free disk, memory status, active/pending downloads and uploads, throughput, and whether the scheduler is throttled. Do not expose system details to unauthorized users.
+
+### 18.7 Security and Privacy Hardening
+
+- **FR-130 Owner authorization:** Validate owner identity on every command, callback, and job mutation; never rely only on hidden buttons or an initial /start check.
+- **FR-131 SSRF defense:** Allow only explicitly supported URL schemes; reject loopback, private, link-local, multicast, and reserved IPs; resolve and validate DNS before requests and revalidate every redirect. Defend against DNS rebinding and IP-literal tricks.
+- **FR-132 Egress and size controls:** Apply connection/read timeouts, redirect limits, response-size limits, maximum file size, decompression safeguards, and bounded concurrency. Do not fetch arbitrary local files or cloud metadata endpoints.
+- **FR-133 Safe subprocesses:** Invoke external programs with argument arrays, fixed executable paths where practical, controlled environments, and timeouts. Never concatenate user-supplied URLs, filenames, or options into a shell command.
+- **FR-134 Secret hygiene:** Load secrets from Colab Secrets or environment variables. Redact tokens, session strings, cookies, signed query parameters, and authorization headers from logs, exceptions, job history, and Telegram replies.
+- **FR-135 Session protection:** Prefer Telegram bot-token mode. If user-session mode is explicitly needed, treat the Pyrogram session file/string as a credential with access equivalent to the logged-in account; protect it, exclude it from Git, and provide rotation/revocation instructions.
+- **FR-136 File safety:** Sanitize output filenames and paths, prevent path traversal, write to controlled temporary directories, and validate expected file type before processing. Do not trust MIME type or extension alone.
+- **FR-137 Dependency and configuration security:** Pin dependencies, review updates, avoid executing remote scripts without inspection, keep .env, notebook outputs, session files, cookies, and media out of Git, and validate configuration at startup.
+- **FR-138 Privacy controls:** Avoid storing full source URLs longer than needed when they contain tokens or private identifiers. Provide configurable history/log retention and a way to remove stored job metadata where safe.
+- **FR-139 Authorized content:** PCM should process only content the user is authorized to access and transfer, and must not attempt to defeat access controls or provider restrictions.
+
+### 18.8 Automated Test Strategy
+
+- **FR-140 Unit tests:** Test URL normalization, scheme/host/IP validation, redirect policy, provider matching, strategy ranking, typed errors, profile precedence, duplicate identity, and job state transitions.
+- **FR-141 Fixture-based provider tests:** Use saved, sanitized HTML/JSON fixtures and mocked HTTP responses for deterministic tests. Keep live-site checks optional and isolated from normal CI.
+- **FR-142 Pipeline tests:** Simulate download success/failure, interrupted downloads, upload success/failure, partial destination success, cancellation, retry, cleanup, and ambiguous upload acknowledgements.
+- **FR-143 Concurrency tests:** Verify bounded queue size, no duplicate active job claims, lease expiry, fairness, backpressure, and race-free job transitions.
+- **FR-144 Resource tests:** Test disk low/high watermarks, estimated file size over limits, memory-pressure throttling, and safe cleanup while uploads are active.
+- **FR-145 Security tests:** Include SSRF/private IP and redirect cases, DNS rebinding-oriented validation cases, malicious filenames, shell metacharacters, secret redaction, and unauthorized callback attempts.
+- **FR-146 Recovery tests:** Simulate worker process termination at each stage, restart with persisted records, stale leases, missing artifacts, and ambiguous destination completion.
+- **FR-147 CI baseline:** Run formatting/linting and tests on every pull request/commit using a supported Python version. Use a maintainable toolchain such as pytest plus Ruff; select exact versions during implementation.
+- **FR-148 Acceptance gate:** A change to a provider, queue, persistence adapter, or uploader must include tests for its success path and at least one failure/recovery path. No secrets or real private URLs may be included in test fixtures.
+
+## 19. Updated Acceptance Criteria
+
+The enhanced MVP is accepted only when all of the following are demonstrated:
+
+1. One Telegram message containing multiple URLs creates a parent batch and individually inspectable child jobs.
+2. Duplicate policy works for canonical source identities without incorrectly stripping required signed-link parameters.
+3. Owner can pause/resume supported work, cancel a job, retry a failed stage, and inspect job history.
+4. Download and upload stages have independent progress, retry counters, and destination outcomes.
+5. Provider ranking uses compatibility and recent health, while fallback attempts remain bounded and observable.
+6. Destination profiles and per-job overrides resolve with the documented precedence and are persisted as a job settings snapshot.
+7. Disk watermarks and queue backpressure prevent new downloads from exhausting temporary storage.
+8. Resource pressure can lower concurrency, and /health reports when the scheduler is throttled.
+9. A Colab restart recovers from durable job state and does not blindly repeat a destination operation with an ambiguous result.
+10. SSRF, subprocess, filename, secret-redaction, owner-authorization, and state-transition tests pass.
+11. The worker reports offline/waiting honestly when Colab is disconnected; no always-on guarantee is implied.
+
+## 20. Updated Implementation Order
+
+1. **Foundation and safety:** Python package/config/logging, schemas, typed errors, secret redaction, safe URL model, test/lint setup.
+2. **Resolver and provider registry:** Canonicalization, SSRF-safe redirects, classification, provider contracts, strategy ranking, deterministic tests.
+3. **Job lifecycle and durable storage:** Job/event schema, lease interface, state machine, history, idempotency/reconciliation design, persistence integration.
+4. **Pyrogram control surface:** Owner-only commands, batch intake, queue/status/pause/resume/cancel/retry, inline destination and quality selection.
+5. **Single-job transfer vertical slice:** One supported resolver, download validation, Telegram upload, then GoFile upload, independent progress and partial-success handling.
+6. **Resource-aware queue:** Disk watermarks, memory/buffer limits, concurrency caps, backpressure, bandwidth settings, safe cleanup.
+7. **Profiles, deduplication, and provider health:** Add after core lifecycle and persistence are reliable.
+8. **Colab operations:** Bootstrap notebook, secrets, dependency checks, heartbeat, graceful stop/checkpoint, restart reconciliation.
+9. **Hardening and provider expansion:** Add adapters incrementally with fixtures, failure tests, security review, and documentation.
+
+The order intentionally prioritizes state correctness and safety before adaptive scoring or a large number of provider integrations. Features that require durable cross-runtime state must not be marked complete while state exists only on Colab's ephemeral disk.
+
+## 21. Updated Risks and Mitigations
+
+| Risk | Mitigation |
+|---|---|
+| Duplicate batch inputs create redundant work | Canonical identity, configurable duplicate policy, optional content hashes |
+| Provider health score overreacts to sparse data | Minimum sample thresholds, rolling windows, confidence-aware ranking |
+| Pause/cancel cannot interrupt every third-party operation | Stage-aware cooperative controls and explicit pending state |
+| Runtime pressure exhausts disk or memory | Reservations, watermarks, bounded buffers, adaptive concurrency |
+| Restart causes duplicate upload | Durable events, leases, destination reconciliation, recovery-needed state |
+| Sensitive signed URLs leak in logs | Central redaction and tests that assert secret removal |
+| Automated fallback causes excessive requests | Strict attempts, timeout, host, and total resource budgets |
+| Colab runtime disappears mid-job | Durable external state, checkpointing, honest offline status; no uptime promise |
+
+---
+
+**End of PRD — Draft v1.2 (Python + Pyrogram + Colab, enhanced operations)**
