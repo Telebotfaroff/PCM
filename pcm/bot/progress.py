@@ -4,7 +4,6 @@ from __future__ import annotations
 import time
 
 
-_MIB = 1024 * 1024
 
 
 def format_bytes(value: int) -> str:
