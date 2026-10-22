@@ -112,10 +112,8 @@ class WatchHentaiResolver:
 
     async def resolve(self, episode_url: str) -> dict:
         parsed = parse_url(episode_url)
-        if parsed.hostname.lower() not in {"watchhentai.net", "www.watchhentai.net"} or not parsed.normalized.split("?", 1)[0].rstrip("/").endswith(tuple()):
-            # The explicit path check below gives a clear provider boundary.
-            if parsed.hostname.lower() not in {"watchhentai.net", "www.watchhentai.net"}:
-                raise ProviderResolveError("Only WatchHentai episode URLs are supported")
+        if parsed.hostname.lower() not in {"watchhentai.net", "www.watchhentai.net"}:
+            raise ProviderResolveError("Only WatchHentai episode URLs are supported")
         if not re.search(r"/videos/[^/]+/?$", urlsplit(parsed.normalized).path, re.I):
             raise ProviderResolveError("URL must be a WatchHentai episode page (/videos/...)")
 
