@@ -29,6 +29,10 @@ def register_handlers(app: Client, owner_id: int) -> None:
     choices: dict[str, dict] = {}
     menus: dict[str, dict] = {}
 
+    @app.on_message(filters.command("me") & private_owner)
+    async def me_handler(_: Client, message: Message) -> None:
+        await message.reply_text("PCM Control Panel\\n\\nSettings panel is available. Use /help for commands.")
+
     @app.on_message(filters.command("start") & private_owner)
     async def start_handler(_: Client, message: Message) -> None:
         await message.reply_text(
