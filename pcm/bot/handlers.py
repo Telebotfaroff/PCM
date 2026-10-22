@@ -139,7 +139,25 @@ def register_handlers(app: Client, owner_id: int) -> None:
             await message.reply_text(f"❌ URL rejected: {exc}")
             return
         provider = get_provider(parsed.normalized)
-        if provider and provider.classify_url(parsed.normalized) in {"series", "episode"}:
+        if provider and provider.classify_url(parsed.normalized) == "episode":
+            # A directly sent episode URL starts immediately at the highest available quality.
+            status = await message.reply_text("🔎 Resolving episode and selecting the highest quality…")
+            try:
+                result = await provider.resolve(parsed.normalized)
+                title = result.get("page", {}).get("title") or "Episode"
+                if not result.get("sources"):
+                    raise ValueError("No downloadable video sources were found.")
+                await status.edit_text(
+                    f"🎬 <b>{title[:120]}</b>\\n"
+                    "🏆 Highest available quality selected automatically."
+                )
+                await download_one(
+                    message.chat.id, status, provider.name, parsed.normalized, title
+                )
+            except Exception as exc:
+                await status.edit_text(f"❌ Could not download episode: {str(exc)[:600]}")
+            return
+        if provider and provider.classify_url(parsed.normalized) == "series":
             await resolve_episode(message, candidate)
             return
         await message.reply_text(
