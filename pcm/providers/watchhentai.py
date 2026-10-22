@@ -39,7 +39,7 @@ class _PageParser(HTMLParser):
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         attr = {key.lower(): value or "" for key, value in attrs}
         if tag == "meta":
-            key = (attr.get("property") or attr.get("name") or attr.get("itemprop")).lower()
+            key = (attr.get("property") or attr.get("name") or attr.get("itemprop") or "").lower()
             value = attr.get("content", "").strip()
             if key == "description" and value:
                 self.page.description = self.page.description or value
