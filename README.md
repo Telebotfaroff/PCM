@@ -47,3 +47,14 @@ Never commit `.env`, Pyrogram session files, API keys, cookies, or downloaded me
 4. Owner-only Pyrogram bot, episode discovery, single/all selection, and sequential batch downloads.
 5. Telegram and GoFile transfer adapters.
 6. Colab bootstrap, resource backpressure, and recovery.
+
+
+## Adding another provider
+
+1. Create a provider-specific adapter in `pcm/providers/` (for example, `example_adapter.py`). Give it a unique `name` and readable `display_name`, and implement `supports_url(url)`, `classify_url(url)`, `discover_episodes(url)`, and `resolve(episode_url)`.
+2. Return `"episode"`, `"series"`, or `"unknown"` from classification. Episode URLs must resolve only the requested episode; series URLs should return a list of `{"url": "...", "title": "..."}` episode records.
+3. Keep the resolver result shape compatible with the bot: `{"page": {"title": "..."}, "sources": [{"label": "720p", "url": "https://..."}]}`. Preserve URL validation and validate every redirect before fetching.
+4. Register the adapter in `_load_providers()` in `pcm/providers/registry.py`.
+5. Add parser/resolver tests and registry-routing tests before using the provider live.
+
+The Telegram UI, quality selection, progress updates, sequential series queue, Telegram upload, and temporary-file cleanup are shared. Site-specific HTML parsing and source resolution belong in the adapter and its provider modules.
