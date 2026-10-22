@@ -4,7 +4,7 @@ PCM is a private Telegram-controlled download and upload manager. The initial st
 
 ## Current status
 
-The repository now includes an owner-only WatchHentai episode workflow: PCM fetches the episode page and player page, parses and decodes `whJwSources`, presents available quality buttons, downloads the selected source with redirect/DNS checks and media validation, then uploads the video to the owner's private Telegram chat. The live provider resolver and downloader are separate modules. InsForge-backed durable job execution and GoFile upload integration remain future work. Live website resolution is not guaranteed by offline tests.
+The repository now includes an owner-only WatchHentai episode workflow: send one episode URL and PCM discovers linked episode pages (up to 50), lists them, and offers **Download single episode** or **Download all**. Single mode lets you choose an episode and quality; all mode downloads sequentially, selecting the highest-labelled quality available for each episode, then sends each video to the owner's private Telegram chat. The resolver parses and decodes `whJwSources`; downloads use redirect/DNS checks, streaming, size limits, and progress updates. InsForge-backed durable job execution and GoFile upload integration remain future work. Live website resolution and actual media downloads have not yet been verified against the live site.
 
 ## Requirements
 
@@ -44,6 +44,6 @@ Never commit `.env`, Pyrogram session files, API keys, cookies, or downloaded me
 1. Python foundation and tests.
 2. Safe URL resolver and provider registry.
 3. InsForge schema and durable job lifecycle.
-4. Owner-only Pyrogram bot and batch queue.
+4. Owner-only Pyrogram bot, episode discovery, single/all selection, and sequential batch downloads.
 5. Telegram and GoFile transfer adapters.
 6. Colab bootstrap, resource backpressure, and recovery.
