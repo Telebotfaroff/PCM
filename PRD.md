@@ -2,8 +2,8 @@
 ## Product Requirements Document (PRD)
 
 **Status:** Draft v1.0  
-**Primary interface:** Telegram bot  
-**Initial processing environment:** Google Colab worker  
+**Primary interface:** Private Telegram bot using Python + Pyrogram  
+**Initial runtime:** Google Colab notebook (bot + worker prototype)  
 **Repository:** https://github.com/Telebotfaroff/PCM
 
 ## 1. Executive Summary
@@ -148,64 +148,74 @@ Core use cases:
 - Portability: worker runs in Colab initially and can later move to a VPS or persistent worker.
 - Transparency: distinguish unsupported content from temporary failures and show accurate progress.
 
-## 7. Proposed Architecture
+## 7. Proposed Architecture — Python First
 
-### Control plane
-- Node.js + TypeScript.
-- Telegraf for Telegram interactions.
-- Authenticated API for job creation, status, cancellation, and worker heartbeat.
-- Persistent job store selected before implementation.
+### Initial MVP runtime
+- Python 3.11+ (verify compatibility of pinned dependencies during implementation).
+- Pyrogram for Telegram bot updates, commands, callbacks, message handling, and Telegram media operations.
+- A Google Colab notebook runs the initial private bot and worker in one prototype runtime to minimize deployment complexity.
+- Async-first design using `asyncio`; use bounded subprocess wrappers for tools such as `yt-dlp`, `aria2c`, and FFmpeg.
+- Keep bot handlers thin: they validate input and create jobs; provider resolution and transfers run in separate modules/tasks.
+- Use environment variables or Colab Secrets for credentials. Never commit bot tokens, API hashes, session strings, cookies, or provider keys.
 
-### Processing plane
-- Google Colab notebook for the initial worker.
-- Python adapters where useful for existing Pyrogram/Python integrations.
-- `yt-dlp`, `aria2c`, FFmpeg, and HTTP streaming tools as appropriate.
-- Bounded temporary storage and automatic cleanup.
+### Future deployment boundary
+The first prototype may run both bot and worker in Colab. Colab runtimes can disconnect or be reclaimed, so this is not a 24/7 guarantee. Keep the control logic, worker loop, and persistence interfaces separable so a later always-on host can run the bot/API while Colab or a persistent worker handles heavy transfers. Do not claim jobs are actively processing when the Colab runtime is offline.
 
-### Shared modules
-- URL parser/normalizer, redirect resolver, content classifier.
-- Provider registry and strategy planner.
-- Download engine, upload engine, queue scheduler.
-- Persistence adapter, telemetry, and shared schemas.
+### Python processing plane
+- `yt-dlp` for supported media extraction and downloads.
+- `aria2c` for supported HTTP downloads where segmented downloading is appropriate.
+- FFmpeg for optional merge/remux and media validation.
+- `httpx` or `aiohttp` for HTTP requests and streaming, selected consistently.
+- Pyrogram upload adapter for configured Telegram chats/channels.
+- GoFile adapter as the initial external cloud destination; other destinations are added after API and limit verification.
+- Bounded queues, independent download/upload concurrency, disk backpressure, retry policies, and cleanup.
 
-### Storage decision
-Do not use GitHub JSON as a concurrent live queue shared by independent processes. It may hold provider manifests, configuration snapshots, or backups. Use transactional storage or atomic leases for live jobs. SQLite is suitable for a single persistent process; a remote transactional database is preferable when bot and worker coordinate across environments. Confirm the final choice before implementation.
+### Core modules
+- URL parser/normalizer and safe redirect resolver.
+- Content classifier and strategy planner.
+- Provider registry with typed capabilities/errors.
+- Download engine and upload destination adapters.
+- Job scheduler, progress events, persistence interface, recovery, and health status.
+- Pyrogram handlers and inline keyboards.
 
-## 8. Proposed Repository Structure
+### Persistence decision
+Do not use GitHub JSON as a concurrent live queue shared by independent processes. It may hold provider manifests, configuration snapshots, or backups. The first prototype may use SQLite for local development/testing, but Colab's local disk is ephemeral; production-like job state must live in durable remote storage before recovery can be trusted. Choose a remote transactional store before implementing cross-runtime job claims and leases. Avoid introducing MongoDB or Redis unless explicitly chosen; the storage decision remains open.
+
+## 8. Proposed Python Repository Structure
 
 ```text
 PCM/
-├── apps/
-│   ├── bot/                 # Telegram commands, callbacks, progress
-│   ├── api/                 # Authenticated job/worker API
-│   └── worker/              # Worker runner and scheduler
-├── packages/
-│   ├── url-intelligence/    # Parser, redirects, classifier, planner
-│   ├── provider-registry/
-│   ├── shared-types/
-│   ├── queue/
-│   ├── persistence/
-│   ├── download-engine/
-│   └── upload-engine/
+├── pcm/
+│   ├── bot/                 # Pyrogram handlers, callbacks, keyboards
+│   ├── core/                # Config, schemas, typed errors, logging
+│   ├── resolver/            # URL parsing, redirects, classification
+│   ├── providers/           # Provider contracts and registry
+│   ├── downloads/            # yt-dlp, aria2c, HTTP adapters
+│   ├── uploads/              # Telegram, GoFile and future adapters
+│   ├── jobs/                 # Queue, lifecycle, retries, recovery
+│   └── storage/              # Persistence interface and implementations
 ├── providers/
 │   ├── websites/
-│   ├── generic-extractors/
-│   ├── cloud-links/
+│   ├── generic_extractors/
+│   ├── cloud_links/
 │   └── destinations/
-│       ├── telegram/
-│       ├── gofile/
-│       ├── streamtape/
-│       └── doodstream/
-├── colab/PCM_Worker.ipynb
-├── tests/{resolver,providers,queue,integration}/
+├── colab/
+│   └── PCM_Worker.ipynb     # Initial run/setup notebook
+├── tests/
+│   ├── resolver/
+│   ├── providers/
+│   ├── jobs/
+│   └── integration/
 ├── config/
 ├── docs/
 ├── .env.example
+├── requirements.txt
+├── pyproject.toml
 ├── README.md
 └── PRD.md
 ```
 
-This structure is a proposal; it does not imply these files already exist.
+This is a proposed target structure; files should be added incrementally as each phase is implemented. The Colab notebook should bootstrap from the repository rather than become the only source of truth for application code.
 
 ## 9. Telegram UX and Job Lifecycle
 
@@ -231,12 +241,20 @@ Each destination has its own upload state. Overall success is derived from confi
 ## 10. Proposed Environment Variables
 
 ```dotenv
+# Telegram bot identity and API access
 TELEGRAM_BOT_TOKEN=
+TELEGRAM_API_ID=
+TELEGRAM_API_HASH=
 TELEGRAM_OWNER_ID=
+TELEGRAM_TARGET_CHAT_ID=
 
-PCM_API_BASE_URL=
-PCM_WORKER_SHARED_SECRET=
+# Optional user-session mode only if explicitly required for a feature.
+# Treat the session string/file as a high-sensitivity credential.
+TELEGRAM_SESSION_STRING=
+
+# Persistence/coordination (final remote store to be selected)
 PCM_DATABASE_URL=
+PCM_WORKER_SHARED_SECRET=
 
 MAX_CONCURRENT_DOWNLOADS=2
 MAX_CONCURRENT_UPLOADS=2
@@ -244,11 +262,12 @@ MAX_QUEUE_SIZE=50
 MIN_FREE_DISK_MB=2048
 MAX_REDIRECT_HOPS=8
 PROVIDER_TIMEOUT_SECONDS=60
+MAX_FALLBACK_ATTEMPTS=3
 
 DEFAULT_QUALITY=best
 DEFAULT_DESTINATION=telegram
-TEMP_DIR=/tmp/pcm
-LOG_LEVEL=info
+TEMP_DIR=/content/pcm
+LOG_LEVEL=INFO
 
 # Optional provider credentials, only when needed
 GOFILE_TOKEN=
@@ -257,7 +276,7 @@ STREAMTAPE_KEY=
 DOODSTREAM_API_KEY=
 ```
 
-These names are proposals. Verify provider-specific environment requirements during implementation. Never commit real credentials or expose secrets in logs.
+These names are proposals and should be validated during implementation. In Colab, prefer Colab Secrets for credentials rather than notebook literals. Keep `.env` and Pyrogram session files out of Git. A bot token and a user session are different access modes; default to bot-token mode unless a specific feature requires user authorization. Never log session strings, bot tokens, API hashes, cookies, or signed URLs.
 
 ## 11. Testing and Acceptance Criteria
 
@@ -305,21 +324,24 @@ These names are proposals. Verify provider-specific environment requirements dur
 
 ## 13. Delivery Phases
 
-1. **Foundation:** TypeScript conventions, shared types, URL parsing, normalization, redirect policy, classification, registry, typed errors, resolver tests.
-2. **Provider integrations:** Generic HTTP detection, yt-dlp, first existing scraper adapter, one cloud-share adapter, fallback tests.
-3. **Transfer pipeline:** Bounded queues, progress, file validation, cleanup, retry behavior, Telegram and GoFile adapters, partial-success handling.
-4. **Telegram control plane:** Owner-only access, commands, inline choices, queue controls, status and worker health.
-5. **Colab and persistence:** Authenticated job API, heartbeat, leases, checkpoints, recovery tests.
-6. **Expansion and hardening:** Additional provider adapters after API verification, concurrency tuning, integration tests, deployment documentation.
+1. **Python foundation:** Create `pyproject.toml`, pinned `requirements.txt`, config loading, structured logging, typed models/errors, URL parsing/normalization, redirect policy, and resolver unit tests.
+2. **Pyrogram bot skeleton:** Implement owner-only access, `/start`, `/help`, URL intake, `/queue`, `/status`, `/cancel`, `/retry`, and `/settings`; add callback handling and test authorization.
+3. **Resolver MVP:** Implement direct-media/direct-file detection, generic HTTP inspection, yt-dlp integration, provider registry, classification, safe fallback planning, and clear unsupported-URL diagnostics.
+4. **Transfer pipeline:** Add bounded download/upload queues, separate progress events, speed/ETA reporting, disk backpressure, retries, validation, cleanup, and Telegram + GoFile adapters. Preserve per-destination partial success.
+5. **Colab notebook:** Provide one-click setup/run instructions, secret loading, dependency checks, FFmpeg/aria2c availability checks, runtime heartbeat, resumable configuration, and safe shutdown/restart reconciliation. Notebook code should import modules from the repository.
+6. **Durable persistence and recovery:** Select a remote transactional store before cross-runtime processing. Implement atomic job claims/leases, idempotency/reconciliation, worker heartbeats, and recovery tests.
+7. **Provider expansion and hardening:** Wrap the first existing scraper after inspection, add cloud-share providers incrementally, verify third-party upload APIs, and expand integration/security tests.
+8. **Deployment portability:** Document the Colab limitations and a path to run the Pyrogram control bot on an always-on host while processing runs on a worker.
 
 ## 14. Open Decisions
 
-1. Which existing provider/repository should be wrapped first? Recommended starting point: `Telebotfaroff/whbot`.
-2. Which persistent store should coordinate bot and Colab worker?
-3. Will the control bot run on an always-on host, with Colab used only as a worker?
+1. Which existing provider/repository should be wrapped first? Candidate: `Telebotfaroff/whbot`; inspect its current code before reusing anything.
+2. Which durable remote store should hold jobs and coordinate recovery?
+3. For the first prototype, bot and worker run together in Colab; when should they be split onto separate runtimes?
 4. Are Telegram and GoFile the only required first-release destinations?
-5. Should the first release remain owner-only?
+5. Confirm owner-only access for the MVP (recommended).
 6. Which existing scraper integrations are stable enough to reuse?
+7. Should Telegram uploads use bot-token mode only, or is a user session required for a clearly identified use case? Default recommendation: bot-token mode.
 
 ## 15. MVP Definition of Done
 
@@ -327,4 +349,72 @@ An authorized Telegram user can submit a supported URL; PCM identifies it, resol
 
 ---
 
-**End of PRD — Draft v1.0**
+## 16. Implementation Plan and Milestones
+
+The implementation should proceed in small, testable commits. Do not attempt to build every scraper or destination before the core job lifecycle works.
+
+### Milestone 0 — Repository and runtime baseline
+- Add Python package layout, `pyproject.toml`, `requirements.txt`, `.gitignore`, `.env.example`, and README setup instructions.
+- Pin/test Python and library versions in a clean runtime; record known limitations of Pyrogram and Colab.
+- Add config validation that fails fast when required settings are missing.
+- Ensure secrets, session files, downloaded media, and logs containing private URLs are ignored by Git.
+
+**Acceptance:** the package imports cleanly, configuration validation has tests, and a fresh Colab runtime can install dependencies without manually editing source files.
+
+### Milestone 1 — Safe URL resolver
+- Build URL parsing, normalization, scheme/host validation, redirect limits, redirect-loop detection, DNS/IP checks, and redacted diagnostics.
+- Add provider contract, registry, content classification, typed failures, and bounded strategy planning.
+- Begin with fixture-based tests and a small allowlist of known test URLs; never depend exclusively on live websites in unit tests.
+
+**Acceptance:** unit tests cover valid, malformed, redirected, unsupported, expired, and prohibited-network URLs.
+
+### Milestone 2 — Private Pyrogram control bot
+- Add owner-ID authorization before any command or callback performs work.
+- Implement `/start`, `/help`, URL intake, `/queue`, `/status`, `/cancel`, `/retry`, `/settings`, and `/providers`.
+- Store job IDs and stage transitions through a persistence interface, not in handler-local variables.
+- Use inline keyboards for quality and destination selection when more than one option exists.
+
+**Acceptance:** unauthorized users cannot create or control jobs; invalid job IDs and callback inputs return safe errors; basic commands work without a download provider installed.
+
+### Milestone 3 — Download and upload vertical slice
+- Integrate yt-dlp for supported pages and native HTTP streaming for validated direct media/files.
+- Add file validation and a single-download/single-upload pipeline first.
+- Add Telegram destination, then GoFile, with independently tracked results.
+- Add separate download/upload progress, speed/ETA where available, throttled Telegram edits, cancellation, retry, and cleanup.
+- Expand concurrency only after the single-job path is reliable; start conservatively in Colab and enforce disk backpressure.
+
+**Acceptance:** a supported test URL can be resolved, downloaded, validated, uploaded to the selected destination, and reported with a verified result link. A failed destination does not erase a successful one.
+
+### Milestone 4 — Colab operations and recovery
+- Create `colab/PCM_Worker.ipynb` to clone/update the repository, load Colab Secrets, install dependencies, check required binaries, configure temporary storage, and launch PCM.
+- Show runtime/worker status and a clear warning that Colab may disconnect and is not guaranteed always-on hosting.
+- Checkpoint job transitions in durable storage; reconcile jobs after restart and avoid blindly repeating uploads whose outcome is ambiguous.
+- Keep a lightweight SQLite implementation for local tests if useful, but do not treat Colab's local SQLite file as durable across runtime loss.
+
+**Acceptance:** after a simulated worker restart, jobs are reconciled into waiting, retryable, completed, or recovery-needed states without claiming the runtime was continuously available.
+
+### Milestone 5 — Provider expansion and hardening
+- Inspect and wrap existing scraper code one provider at a time.
+- Add cloud-share adapters and additional destinations only after their APIs, credentials, rate limits, and output-link behavior are verified.
+- Add integration tests, concurrency tests, SSRF tests, retry/backoff tests, and storage pressure tests.
+- Document environment variables, Colab operation, troubleshooting, and future migration to an always-on control bot plus worker.
+
+**Acceptance:** provider failures are isolated, resource limits are enforced, secrets are not logged, and the MVP can be operated from the documented setup.
+
+### First implementation commit scope
+The first coding change should establish the Python project skeleton, configuration and logging, URL model/provider interfaces, a minimal resolver with tests, and a Colab bootstrap outline. Do not implement speculative support for every site in the first commit.
+
+## 17. Implementation Guardrails
+
+- Keep Pyrogram handlers thin and use asynchronous I/O for network-bound work.
+- Use subprocess argument arrays (not shell-concatenated user input) when invoking external tools.
+- Never fetch arbitrary URLs without SSRF protection; validate every redirect and resolved address.
+- Never log bot tokens, API hashes, session strings, cookies, or complete signed URLs.
+- Use finite timeouts, retry caps, queue bounds, disk thresholds, and provider-specific limits.
+- Do not claim Colab is always-on; show worker offline/waiting status honestly.
+- Treat upload acknowledgements carefully and reconcile ambiguous outcomes before retrying.
+- Do not add unrelated databases or services without a deliberate decision.
+
+---
+
+**End of PRD — Draft v1.1 (Python + Pyrogram + Colab)**
