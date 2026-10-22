@@ -35,8 +35,8 @@ def register_handlers(app: Client, owner_id: int) -> None:
     async def start_handler(_: Client, message: Message) -> None:
         await message.reply_text(
             "PCM — Private Content Manager\n\n"
-            "Send a WatchHentai series or episode URL. PCM will detect the page type and find episodes, "
-            "then let you download one episode or the full discovered list.\n"
+            "Send an episode URL to download only that episode, or a series URL to choose one episode "
+            "or download the whole series.\n"
             "Only the configured owner can use this bot."
         )
 
@@ -48,8 +48,8 @@ def register_handlers(app: Client, owner_id: int) -> None:
             "/help — this message\n"
             "/resolve URL — discover related episodes\n\n"
             "/ytdlp URL — download a supported video with yt-dlp\n"
-            "Send a WatchHentai series or episode URL to list episodes. Choose Download single "
-            "to select one episode and quality, or Download all to process the list sequentially."
+            "Send an episode URL to download only that episode. Send a series URL to list its episodes and choose "
+            "one episode or Download series to process the whole list sequentially."
         )
 
     @app.on_message(filters.regex(r"^/resolve(?:\s|$)") & private_owner)
@@ -65,40 +65,58 @@ def register_handlers(app: Client, owner_id: int) -> None:
             parsed = parse_url(url)
             if parsed.hostname.lower() not in {"watchhentai.net", "www.watchhentai.net"}:
                 raise ProviderResolveError("Only WatchHentai URLs are supported.")
-            if classify_url(parsed.normalized) not in {"series", "episode"}:
+            page_type = classify_url(parsed.normalized)
+            if page_type not in {"series", "episode"}:
                 raise ProviderResolveError("Send a WatchHentai /series/... or /videos/... URL.")
         except (URLValidationError, ProviderResolveError) as exc:
             await message.reply_text(f"❌ {exc}")
             return
 
-        status = await message.reply_text("🔎 Finding episodes related to this page…")
+        status = await message.reply_text(
+            "🔎 Reading the series page…" if page_type == "series" else "🔎 Resolving this episode only…"
+        )
         try:
-            episodes = await discover_episodes(url)
-            if not episodes:
-                raise ProviderResolveError("No episode links were found.")
-            # Resolve the requested episode as an early check that its player works.
-            first_result = await resolver.resolve(episodes[0]["url"])
-            first_title = first_result["page"].get("title") or episodes[0]["title"]
-            episodes[0]["title"] = first_title
+            if page_type == "episode":
+                # An episode URL means exactly that episode. Never discover or enqueue siblings.
+                result = await resolver.resolve(parsed.normalized)
+                title = result["page"].get("title") or "Episode"
+                episodes = [{"url": parsed.normalized, "title": title}]
+            else:
+                episodes = await discover_episodes(parsed.normalized)
+                if not episodes:
+                    raise ProviderResolveError("No episode links were found on this series page.")
+                # Resolve one episode to confirm the series entries are downloadable.
+                first_result = await resolver.resolve(episodes[0]["url"])
+                title = first_result["page"].get("title") or episodes[0]["title"]
+                episodes[0]["title"] = title
+
             token = secrets.token_urlsafe(8)
-            menus[token] = {"episodes": episodes, "series_title": first_title}
-            keyboard = InlineKeyboardMarkup([[
-                InlineKeyboardButton("⬇ Download single episode", callback_data=f"pcm_menu:{token}"),
-                InlineKeyboardButton(f"⬇ Download all ({len(episodes)})", callback_data=f"pcm_all:{token}"),
-            ]])
+            menus[token] = {"episodes": episodes, "series_title": title, "is_series": page_type == "series"}
+            buttons = [InlineKeyboardButton(
+                "⬇ Download episode" if page_type == "episode" else "⬇ Choose single episode",
+                callback_data=f"pcm_menu:{token}",
+            )]
+            if page_type == "series":
+                buttons.append(InlineKeyboardButton(
+                    f"📚 Download series ({len(episodes)})",
+                    callback_data=f"pcm_all:{token}",
+                ))
+            keyboard = InlineKeyboardMarkup([buttons])
             episode_lines = "\n".join(
                 f"{i + 1}. {episode['title'][:90]}" for i, episode in enumerate(episodes[:20])
             )
             if len(episodes) > 20:
                 episode_lines += f"\n… plus {len(episodes) - 20} more"
+            heading = "Series found" if page_type == "series" else "Episode ready"
             await status.edit_text(
-                f"🎬 <b>{first_title}</b>\n\n"
-                f"Found <b>{len(episodes)}</b> episode link(s):\n{episode_lines}\n\n"
-                "Choose what to download:",
+                f"🎬 <b>{title}</b>\n\n"
+                f"{heading}: <b>{len(episodes)}</b> episode link(s)\n{episode_lines}\n\n"
+                + ("Choose one episode or download the whole series:" if page_type == "series"
+                   else "Only the episode URL you sent will be downloaded."),
                 reply_markup=keyboard,
             )
         except Exception as exc:
-            await status.edit_text(f"❌ Could not discover episodes: {str(exc)[:700]}")
+            await status.edit_text(f"❌ Could not process URL: {str(exc)[:700]}")
 
     @app.on_message(filters.text & private_owner, group=1)
     async def url_handler(_: Client, message: Message) -> None:
