@@ -44,7 +44,7 @@ class Settings:
     log_level: str = "INFO"
 
     @classmethod
-    def from_env(cls, *, require_secrets: bool = True) -> "Settings":
+    def from_env(cls, *, require_secrets: bool = True) -> Settings:
         """Load settings; require secrets by default for real application startup."""
         required = {
             "TELEGRAM_BOT_TOKEN": os.getenv("TELEGRAM_BOT_TOKEN", "").strip(),
