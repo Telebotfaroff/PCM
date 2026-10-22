@@ -6,6 +6,10 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 class ConfigError(ValueError):
     """Raised when a configuration value is missing or invalid."""
