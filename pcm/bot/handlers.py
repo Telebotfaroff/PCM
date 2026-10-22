@@ -28,7 +28,9 @@ def register_handlers(app: Client, owner_id: int) -> None:
     private_owner = filters.private & owner
     choices: dict[str, dict] = {}
     menus: dict[str, dict] = {}
-    preferences = {"auto_quality": True, "delete_menu": True}
+    preferences = {"auto_quality": True, "delete_menu": True, "dump_enabled": False}
+    dump_channel: str | None = None
+    awaiting_dump_channel: set[int] = set()
 
     @app.on_message(filters.command("me") & private_owner)
     async def me_handler(_: Client, message: Message) -> None:
@@ -37,11 +39,13 @@ def register_handlers(app: Client, owner_id: int) -> None:
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton(f"🏆 Auto highest quality: {'ON' if preferences['auto_quality'] else 'OFF'}", callback_data="pcm_me:quality")],
                 [InlineKeyboardButton(f"🗑 Delete menu on download: {'ON' if preferences['delete_menu'] else 'OFF'}", callback_data="pcm_me:delete")],
+                [InlineKeyboardButton(f"📦 Dump channel upload: {'ON' if preferences['dump_enabled'] else 'OFF'}", callback_data="pcm_me:dump")],
+                [InlineKeyboardButton("⚙️ Set dump channel", callback_data="pcm_me:setdump")],
                 [InlineKeyboardButton("🔄 Refresh", callback_data="pcm_me:refresh")],
             ]),
         )
 
-    @app.on_callback_query(filters.regex(r"^pcm_me:(quality|delete|refresh)$") & owner)
+    @app.on_callback_query(filters.regex(r"^pcm_me:(quality|delete|dump|setdump|refresh)$") & owner)
     async def me_settings_callback(_: Client, query) -> None:
         if not query.message:
             await query.answer()
@@ -51,15 +55,44 @@ def register_handlers(app: Client, owner_id: int) -> None:
             preferences["auto_quality"] = not preferences["auto_quality"]
         elif action == "delete":
             preferences["delete_menu"] = not preferences["delete_menu"]
+        elif action == "dump":
+            preferences["dump_enabled"] = not preferences["dump_enabled"]
+        elif action == "setdump":
+            awaiting_dump_channel.add(query.from_user.id)
+            await query.answer("Send the channel @username or numeric ID in this chat.", show_alert=True)
+            await query.message.reply_text("📦 Send the dump channel @username or numeric ID. The bot must be an administrator there.")
+            return
         await query.answer("Settings updated." if action != "refresh" else "Settings refreshed.")
         await query.message.edit_text(
             "⚙️ <b>PCM Control Panel</b>\\nChoose a setting:",
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton(f"🏆 Auto highest quality: {'ON' if preferences['auto_quality'] else 'OFF'}", callback_data="pcm_me:quality")],
                 [InlineKeyboardButton(f"🗑 Delete menu on download: {'ON' if preferences['delete_menu'] else 'OFF'}", callback_data="pcm_me:delete")],
+                [InlineKeyboardButton(f"📦 Dump channel upload: {'ON' if preferences['dump_enabled'] else 'OFF'}", callback_data="pcm_me:dump")],
+                [InlineKeyboardButton("⚙️ Set dump channel", callback_data="pcm_me:setdump")],
                 [InlineKeyboardButton("🔄 Refresh", callback_data="pcm_me:refresh")],
             ]),
         )
+
+    @app.on_message(filters.text & private_owner, group=0)
+    async def dump_channel_setup(_: Client, message: Message) -> None:
+        if message.from_user and message.from_user.id in awaiting_dump_channel:
+            value = (message.text or "").strip()
+            if value.startswith("/") or not (value.startswith("@") or value.lstrip("-").isdigit()):
+                await message.reply_text("Send a channel @username or numeric channel ID, for example @my_dump_channel or -1001234567890.")
+                return
+            try:
+                chat = await app.get_chat(value)
+                me = await app.get_chat_member(chat.id, "me")
+                status = str(getattr(me, "status", "")).lower()
+                if "administrator" not in status and "owner" not in status and "creator" not in status:
+                    await message.reply_text("❌ Make the bot an administrator in that channel, then send the channel again.")
+                    return
+                dump_channel = str(chat.id)
+                awaiting_dump_channel.discard(message.from_user.id)
+                await message.reply_text(f"✅ Dump channel saved: <b>{chat.title or chat.id}</b>\\nEnable it from /me when you're ready.")
+            except Exception as exc:
+                await message.reply_text(f"❌ Could not access that channel: {str(exc)[:300]}. Check the ID and bot admin permissions.")
 
     @app.on_message(filters.command("start") & private_owner)
     async def start_handler(_: Client, message: Message) -> None:
@@ -347,7 +380,26 @@ def register_handlers(app: Client, owner_id: int) -> None:
                 thumb=str(thumbnail) if thumbnail else None,
                 progress=upload_progress,
             )
-            await status.edit_text(f"✅ Completed: {title[:150]}")
+            if preferences["dump_enabled"]:
+                if not dump_channel:
+                    await status.edit_text("⚠️ Video sent to chat, but dump upload is enabled and no dump channel is configured. Set it in /me.")
+                else:
+                    try:
+                        await app.send_video(
+                            chat_id=int(dump_channel),
+                            video=str(output),
+                            caption=f"🎬 <b>{title[:900]}</b>\\n🎥 Quality: <b>{source['label']}</b>",
+                            supports_streaming=True,
+                            duration=metadata.duration,
+                            width=metadata.width,
+                            height=metadata.height,
+                            thumb=str(thumbnail) if thumbnail else None,
+                        )
+                        await status.edit_text(f"✅ Completed and copied to dump channel: {title[:130]}")
+                    except Exception as exc:
+                        await status.edit_text(f"⚠️ Sent to chat, but dump channel upload failed: {str(exc)[:350]}")
+            else:
+                await status.edit_text(f"✅ Completed: {title[:150]}")
         finally:
             if output:
                 output.unlink(missing_ok=True)
