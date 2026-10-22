@@ -1,0 +1,43 @@
+name: Fetch provider HTML
+
+on:
+  workflow_dispatch:
+    inputs:
+      website_url:
+        description: "Public website URL to capture (HTML response only)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fetch-provider-html
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Fetch HTML safely
+        env:
+          WEBSITE_URL: ${{ inputs.website_url }}
+        run: python scripts/fetch_provider_html.py
+
+      - name: Commit HTML to repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add providerhtml/*.html
+          if git diff --cached --quiet; then
+            echo "No HTML changes to commit."
+            exit 0
+          fi
+          git commit -m "Capture provider HTML"
+          git push origin HEAD:main
