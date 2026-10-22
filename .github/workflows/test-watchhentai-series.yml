@@ -28,7 +28,7 @@ jobs:
       - name: Extract series episodes
         env:
           SERIES_URL: ${{ inputs.series_url }}
-        run: python scripts/test_watchhentai_series.py "$SERIES_URL" --output watchhentai-series.json
+        run: python scripts/test_watchhentai_series.py --url "$SERIES_URL" --output watchhentai-series.json
       - name: Upload extraction artifact
         uses: actions/upload-artifact@v4
         with:
