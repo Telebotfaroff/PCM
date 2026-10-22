@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import re
 import secrets
-import time
 from pathlib import Path
 
 from pyrogram import Client, filters
@@ -15,6 +14,7 @@ from pcm.core.config import Settings
 from pcm.providers.registry import get_provider, get_provider_by_name
 from pcm.resolver.url_model import URLValidationError, parse_url
 from pcm.transfers.downloader import download_media
+from pcm.bot.progress import TransferProgress
 
 _URL_PATTERN = re.compile(r"https?://[^\s<>]+", re.IGNORECASE)
 _MAX_TELEGRAM_BYTES = 2 * 1024 * 1024 * 1024
@@ -235,37 +235,51 @@ def register_handlers(app: Client, owner_id: int) -> None:
             safe_title = re.sub(r"[^A-Za-z0-9._-]+", "_", title).strip("._")[:70] or "episode"
             output = settings.temp_dir / f"{safe_title}-{secrets.token_hex(4)}.mp4"
             max_bytes = min(settings.max_file_size_mb * 1024 * 1024, _MAX_TELEGRAM_BYTES)
-            last_update = 0.0
+            download_meter = TransferProgress(
+                title, "📥 Downloading", quality=source["label"]
+            )
 
-            async def progress(current: int, total: int) -> None:
-                nonlocal last_update
-                now = time.monotonic()
-                if now - last_update < 4 and (not total or current < total):
-                    return
-                last_update = now
-                if total:
-                    await status.edit_text(
-                        f"📥 <b>{title[:100]}</b> — {source['label']}\n"
-                        f"{current / 1048576:.1f} / {total / 1048576:.1f} MiB "
-                        f"({current * 100 / total:.1f}%)"
-                    )
-                else:
-                    await status.edit_text(
-                        f"📥 <b>{title[:100]}</b> — {source['label']}\n{current / 1048576:.1f} MiB"
-                    )
+            async def download_progress(current: int, total: int) -> None:
+                text = download_meter.render(current, total)
+                if text:
+                    try:
+                        await status.edit_text(text)
+                    except Exception:
+                        # A status-message edit must never interrupt a valid transfer.
+                        pass
 
             await download_media(
                 source["url"], output, referer=episode_url,
                 max_bytes=max_bytes, timeout=settings.request_timeout_seconds,
-                progress=progress,
+                progress=download_progress,
             )
-            if output.stat().st_size > _MAX_TELEGRAM_BYTES:
+            file_size = output.stat().st_size
+            if file_size > _MAX_TELEGRAM_BYTES:
                 raise RuntimeError("File exceeds Telegram's 2 GiB upload limit.")
-            await status.edit_text(f"📤 Uploading <b>{title[:100]}</b> to this chat…")
+
+            await status.edit_text(
+                f"✅ Download complete: <b>{title[:100]}</b>\\n"
+                f"📦 Size: <b>{file_size / 1048576:.2f} MiB</b>\\n"
+                "📤 Preparing Telegram upload…"
+            )
+            upload_meter = TransferProgress(
+                title, "📤 Uploading", quality=source["label"]
+            )
+
+            async def upload_progress(current: int, total: int, *_) -> None:
+                text = upload_meter.render(current, total)
+                if text:
+                    try:
+                        await status.edit_text(text)
+                    except Exception:
+                        # Pyrogram can invoke this callback frequently; keep edits best-effort.
+                        pass
+
             await app.send_video(
                 chat_id=chat_id, video=str(output),
-                caption=f"🎬 <b>{title[:900]}</b>\n🎥 Quality: <b>{source['label']}</b>",
+                caption=f"🎬 <b>{title[:900]}</b>\\n🎥 Quality: <b>{source['label']}</b>",
                 supports_streaming=True,
+                progress=upload_progress,
             )
             await status.edit_text(f"✅ Completed: {title[:150]}")
         finally:
