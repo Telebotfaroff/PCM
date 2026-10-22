@@ -28,10 +28,38 @@ def register_handlers(app: Client, owner_id: int) -> None:
     private_owner = filters.private & owner
     choices: dict[str, dict] = {}
     menus: dict[str, dict] = {}
+    preferences = {"auto_quality": True, "delete_menu": True}
 
     @app.on_message(filters.command("me") & private_owner)
     async def me_handler(_: Client, message: Message) -> None:
-        await message.reply_text("PCM Control Panel\\n\\nSettings panel is available. Use /help for commands.")
+        await message.reply_text(
+            "⚙️ <b>PCM Control Panel</b>\\nChoose a setting:",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton(f"🏆 Auto highest quality: {'ON' if preferences['auto_quality'] else 'OFF'}", callback_data="pcm_me:quality")],
+                [InlineKeyboardButton(f"🗑 Delete menu on download: {'ON' if preferences['delete_menu'] else 'OFF'}", callback_data="pcm_me:delete")],
+                [InlineKeyboardButton("🔄 Refresh", callback_data="pcm_me:refresh")],
+            ]),
+        )
+
+    @app.on_callback_query(filters.regex(r"^pcm_me:(quality|delete|refresh)$") & owner)
+    async def me_settings_callback(_: Client, query) -> None:
+        if not query.message:
+            await query.answer()
+            return
+        action = query.data.split(":", 1)[1]
+        if action == "quality":
+            preferences["auto_quality"] = not preferences["auto_quality"]
+        elif action == "delete":
+            preferences["delete_menu"] = not preferences["delete_menu"]
+        await query.answer("Settings updated." if action != "refresh" else "Settings refreshed.")
+        await query.message.edit_text(
+            "⚙️ <b>PCM Control Panel</b>\\nChoose a setting:",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton(f"🏆 Auto highest quality: {'ON' if preferences['auto_quality'] else 'OFF'}", callback_data="pcm_me:quality")],
+                [InlineKeyboardButton(f"🗑 Delete menu on download: {'ON' if preferences['delete_menu'] else 'OFF'}", callback_data="pcm_me:delete")],
+                [InlineKeyboardButton("🔄 Refresh", callback_data="pcm_me:refresh")],
+            ]),
+        )
 
     @app.on_message(filters.command("start") & private_owner)
     async def start_handler(_: Client, message: Message) -> None:
@@ -144,6 +172,9 @@ def register_handlers(app: Client, owner_id: int) -> None:
             return
         provider = get_provider(parsed.normalized)
         if provider and provider.classify_url(parsed.normalized) == "episode":
+            if not preferences["auto_quality"]:
+                await resolve_episode(message, candidate)
+                return
             # A directly sent episode URL starts immediately at the highest available quality.
             status = await message.reply_text("🔎 Resolving episode and selecting the highest quality…")
             try:
@@ -336,10 +367,11 @@ def register_handlers(app: Client, owner_id: int) -> None:
         await query.answer("Starting sequential downloads…")
         episodes = menu["episodes"]
         # Remove the inline-button menu once the user starts the series download.
-        try:
-            await query.message.delete()
-        except Exception:
-            pass
+        if preferences["delete_menu"]:
+            try:
+                await query.message.delete()
+            except Exception:
+                pass
         summary = await app.send_message(
             chat_id=query.message.chat.id,
             text=f"📚 Starting {len(episodes)} episode(s), one at a time…",
@@ -374,10 +406,11 @@ def register_handlers(app: Client, owner_id: int) -> None:
             return
         await query.answer("Starting download…")
         # Remove the quality-selection message after the download button is clicked.
-        try:
-            await query.message.delete()
-        except Exception:
-            pass
+        if preferences["delete_menu"]:
+            try:
+                await query.message.delete()
+            except Exception:
+                pass
         status = await app.send_message(
             chat_id=query.message.chat.id,
             text=f"📥 Preparing {choice['title'][:100]}…",
