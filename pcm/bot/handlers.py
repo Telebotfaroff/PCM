@@ -331,7 +331,15 @@ def register_handlers(app: Client, owner_id: int) -> None:
             return
         await query.answer("Starting sequential downloads…")
         episodes = menu["episodes"]
-        summary = await query.message.reply_text(f"📚 Starting {len(episodes)} episode(s), one at a time…")
+        # Remove the inline-button menu once the user starts the series download.
+        try:
+            await query.message.delete()
+        except Exception:
+            pass
+        summary = await app.send_message(
+            chat_id=query.message.chat.id,
+            text=f"📚 Starting {len(episodes)} episode(s), one at a time…",
+        )
         succeeded = 0
         failed = []
         for index, episode in enumerate(episodes, 1):
@@ -361,7 +369,15 @@ def register_handlers(app: Client, owner_id: int) -> None:
             await query.answer("This selection expired. Send the episode URL again.", show_alert=True)
             return
         await query.answer("Starting download…")
-        status = await query.message.reply_text(f"📥 Preparing {choice['title'][:100]}…")
+        # Remove the quality-selection message after the download button is clicked.
+        try:
+            await query.message.delete()
+        except Exception:
+            pass
+        status = await app.send_message(
+            chat_id=query.message.chat.id,
+            text=f"📥 Preparing {choice['title'][:100]}…",
+        )
         try:
             await download_one(
                 query.message.chat.id, status, choice["provider"], choice["url"],
