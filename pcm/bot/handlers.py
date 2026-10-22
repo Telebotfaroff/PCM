@@ -48,7 +48,7 @@ def register_handlers(app: Client, owner_id: int) -> None:
             "/help — this message\n"
             "/resolve URL — discover related episodes\n\n"
             "/ytdlp URL — download a supported video with yt-dlp\n"
-            "Send a WatchHentai episode URL to list episodes. Choose Download single "
+            "Send a WatchHentai series or episode URL to list episodes. Choose Download single "
             "to select one episode and quality, or Download all to process the list sequentially."
         )
 
@@ -64,9 +64,9 @@ def register_handlers(app: Client, owner_id: int) -> None:
         try:
             parsed = parse_url(url)
             if parsed.hostname.lower() not in {"watchhentai.net", "www.watchhentai.net"}:
-                raise ProviderResolveError("Only WatchHentai episode URLs are supported.")
-            if not _EPISODE_PATH.search(parsed.normalized.split("?", 1)[0]):
-                raise ProviderResolveError("Send an episode URL under /videos/...")
+                raise ProviderResolveError("Only WatchHentai URLs are supported.")
+            if classify_url(parsed.normalized) not in {"series", "episode"}:
+                raise ProviderResolveError("Send a WatchHentai /series/... or /videos/... URL.")
         except (URLValidationError, ProviderResolveError) as exc:
             await message.reply_text(f"❌ {exc}")
             return
