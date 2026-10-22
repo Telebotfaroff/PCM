@@ -47,7 +47,7 @@ def register_handlers(app: Client, owner_id: int) -> None:
             "/start — status and usage\n"
             "/help — this message\n"
             "/resolve URL — discover related episodes\n\n"
-            "/ytdlp URL — download a supported video with yt-dlp\\n"
+            "/ytdlp URL — download a supported video with yt-dlp\n"
             "Send a WatchHentai episode URL to list episodes. Choose Download single "
             "to select one episode and quality, or Download all to process the list sequentially."
         )
