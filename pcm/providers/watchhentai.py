@@ -35,9 +35,12 @@ class _PageParser(HTMLParser):
         self._capture: str | None = None
         self._capture_depth = 0
         self._capture_parts: list[str] = []
+        self._div_classes: list[set[str]] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         attr = {key.lower(): value or "" for key, value in attrs}
+        if tag == "div":
+            self._div_classes.append(set(attr.get("class", "").split()))
         if tag == "meta":
             key = (attr.get("property") or attr.get("name") or attr.get("itemprop") or "").lower()
             value = attr.get("content", "").strip()
@@ -75,12 +78,19 @@ class _PageParser(HTMLParser):
             classes = attr.get("class", "").split()
             if "item-prev" in classes or attr.get("aria-label", "").lower() == "previous episode":
                 self.page.previous_episode_url = href or self.page.previous_episode_url
-            # Prefer the episode page's explicit “All Episodes” link. Related-series cards also use /series/ URLs and must not overwrite it.
-            if "/series/" in href and "item-all" in classes:
-                self.page.series_url = href or self.page.series_url
+            if "/series/" in href:
+                path = href.split("?", 1)[0].rstrip("/")
+                is_specific_series = path.count("/") >= 4
+                in_all_episodes = any("item-all" in parent for parent in self._div_classes)
+                # Prefer the explicit “All Episodes” link. Otherwise keep the first
+                # specific series link, never the generic /series/ navigation link.
+                if in_all_episodes or (is_specific_series and not self.page.series_url):
+                    self.page.series_url = href
             # Ignore global navigation genres; they are not episode metadata.
 
     def handle_endtag(self, tag: str) -> None:
+        if tag == "div" and self._div_classes:
+            self._div_classes.pop()
         if self._capture == tag:
             value = " ".join("".join(self._capture_parts).split()).strip()
             if value:
