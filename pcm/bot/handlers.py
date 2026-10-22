@@ -277,7 +277,7 @@ def register_handlers(app: Client, owner_id: int) -> None:
 
             await app.send_video(
                 chat_id=chat_id, video=str(output),
-                caption=f"🎬 <b>{title[:900]}</b>\\n🎥 Quality: <b>{source['label']}</b>",
+                caption=f"🎬 <b>{title[:900]}</b>\n🎥 Quality: <b>{source['label']}</b>",
                 supports_streaming=True,
                 progress=upload_progress,
             )
