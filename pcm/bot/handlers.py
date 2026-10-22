@@ -9,12 +9,13 @@ from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from pcm.bot.access import owner_filter
+from pcm.bot.progress import TransferProgress
+from pcm.bot.progress import TransferProgress
 from pcm.bot.ytdlp_handler import register_ytdlp_handler
 from pcm.core.config import Settings
 from pcm.providers.registry import get_provider, get_provider_by_name
 from pcm.resolver.url_model import URLValidationError, parse_url
 from pcm.transfers.downloader import download_media
-from pcm.bot.progress import TransferProgress
 
 _URL_PATTERN = re.compile(r"https?://[^\s<>]+", re.IGNORECASE)
 _MAX_TELEGRAM_BYTES = 2 * 1024 * 1024 * 1024
@@ -259,7 +260,7 @@ def register_handlers(app: Client, owner_id: int) -> None:
 
             await status.edit_text(
                 f"✅ Download complete: <b>{title[:100]}</b>\\n"
-                f"📦 Size: <b>{file_size / 1048576:.2f} MiB</b>\\n"
+                f"📦 Size: <b>{file_size / 1048576:.2f} MiB</b>\n"
                 "📤 Preparing Telegram upload…"
             )
             upload_meter = TransferProgress(
