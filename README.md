@@ -4,7 +4,7 @@ PCM is a private Telegram-controlled download and upload manager. The initial st
 
 ## Current status
 
-The repository is in the foundation phase. Implemented so far: project configuration, environment settings, and safe URL parsing/validation. The Telegram workflow, resolver providers, download/upload engines, and InsForge persistence are not wired up yet.
+The repository is in the foundation phase. Implemented so far: project configuration, owner-only Pyrogram starter commands, basic URL parsing/classification, job state transitions, InsForge PostgreSQL connection-pool scaffold, initial SQL schema, and starter tests. URL submission currently validates only; it does not download or upload content yet. Durable job repository methods and the full transfer pipeline remain to be implemented.
 
 ## Requirements
 
@@ -26,6 +26,7 @@ The repository is in the foundation phase. Implemented so far: project configura
 
 4. Copy `.env.example` to `.env` and fill in secrets locally.
 5. Run tests with `pytest`.
+6. Start the owner-only starter bot with `python -m pcm` after all required settings are configured.
 
 Never commit `.env`, Pyrogram session files, API keys, cookies, or downloaded media. In Colab, use Colab Secrets instead of putting credentials in notebook cells.
 
