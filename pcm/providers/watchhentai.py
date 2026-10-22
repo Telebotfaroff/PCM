@@ -130,9 +130,9 @@ class _PageParser(HTMLParser):
         elif tag == "a":
             href = attr.get("href", "").strip()
             aria_label = attr.get("aria-label", "").lower()
-            if "item-prev" in classes or aria_label == "previous episode":
+            if "item-prev" in classes or any("item-prev" in parent for parent in self._div_classes) or aria_label == "previous episode":
                 self.page.previous_episode_url = href or self.page.previous_episode_url
-            if "item-next" in classes or aria_label == "next episode":
+            if "item-next" in classes or any("item-next" in parent for parent in self._div_classes) or aria_label == "next episode":
                 self.page.next_episode_url = href or self.page.next_episode_url
 
             in_all_episodes = any("item-all" in parent for parent in self._div_classes)
