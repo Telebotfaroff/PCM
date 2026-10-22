@@ -10,6 +10,7 @@ from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from pcm.bot.access import owner_filter
+from pcm.bot.ytdlp_handler import register_ytdlp_handler
 from pcm.core.config import Settings
 from pcm.providers.watchhentai_resolver import ProviderResolveError, WatchHentaiResolver
 from pcm.providers.watchhentai_series import discover_episodes
@@ -23,6 +24,7 @@ _MAX_TELEGRAM_BYTES = 2 * 1024 * 1024 * 1024
 
 def register_handlers(app: Client, owner_id: int) -> None:
     """Register private owner-only commands and media selection callbacks."""
+    register_ytdlp_handler(app, owner_id)
     owner = owner_filter(owner_id)
     private_owner = filters.private & owner
     resolver = WatchHentaiResolver()
