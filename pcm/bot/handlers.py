@@ -12,13 +12,13 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from pcm.bot.access import owner_filter
 from pcm.bot.ytdlp_handler import register_ytdlp_handler
 from pcm.core.config import Settings
+from pcm.providers.watchhentai import classify_url
 from pcm.providers.watchhentai_resolver import ProviderResolveError, WatchHentaiResolver
 from pcm.providers.watchhentai_series import discover_episodes
 from pcm.resolver.url_model import URLValidationError, parse_url
 from pcm.transfers.downloader import download_media
 
 _URL_PATTERN = re.compile(r"https?://[^\s<>]+", re.IGNORECASE)
-_EPISODE_PATH = re.compile(r"/videos/[^/]+/?$", re.IGNORECASE)
 _MAX_TELEGRAM_BYTES = 2 * 1024 * 1024 * 1024
 
 
@@ -35,7 +35,7 @@ def register_handlers(app: Client, owner_id: int) -> None:
     async def start_handler(_: Client, message: Message) -> None:
         await message.reply_text(
             "PCM — Private Content Manager\n\n"
-            "Send a WatchHentai episode URL. PCM will find related episodes, "
+            "Send a WatchHentai series or episode URL. PCM will detect the page type and find episodes, "
             "then let you download one episode or the full discovered list.\n"
             "Only the configured owner can use this bot."
         )
@@ -56,7 +56,7 @@ def register_handlers(app: Client, owner_id: int) -> None:
     async def resolve_command(_: Client, message: Message) -> None:
         parts = (message.text or "").split(maxsplit=1)
         if len(parts) < 2:
-            await message.reply_text("Usage: /resolve https://watchhentai.net/videos/episode-slug/")
+            await message.reply_text("Usage: /resolve https://watchhentai.net/series/series-slug/ or /videos/episode-slug/")
             return
         await resolve_episode(message, parts[1].strip())
 
@@ -116,13 +116,13 @@ def register_handlers(app: Client, owner_id: int) -> None:
             return
         if (
             parsed.hostname.lower() in {"watchhentai.net", "www.watchhentai.net"}
-            and _EPISODE_PATH.search(parsed.normalized.split("?", 1)[0])
+            and classify_url(parsed.normalized) in {"series", "episode"}
         ):
             await resolve_episode(message, candidate)
             return
         await message.reply_text(
             f"Validated: {parsed.hostname} ({parsed.scheme.upper()}).\n"
-            "Episode discovery is currently enabled for WatchHentai episode URLs."
+            "Episode discovery is enabled for WatchHentai series and episode URLs."
         )
 
     @app.on_callback_query(filters.regex(r"^pcm_menu:") & owner)
