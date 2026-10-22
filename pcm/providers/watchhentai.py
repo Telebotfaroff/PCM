@@ -75,7 +75,8 @@ class _PageParser(HTMLParser):
             classes = attr.get("class", "").split()
             if "item-prev" in classes or attr.get("aria-label", "").lower() == "previous episode":
                 self.page.previous_episode_url = href or self.page.previous_episode_url
-            if "/series/" in href:
+            # Prefer the episode page's explicit “All Episodes” link. Related-series cards also use /series/ URLs and must not overwrite it.
+            if "/series/" in href and "item-all" in classes:
                 self.page.series_url = href or self.page.series_url
             # Ignore global navigation genres; they are not episode metadata.
 
