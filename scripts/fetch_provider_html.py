@@ -8,10 +8,9 @@ import os
 import re
 import socket
 import sys
-import time
 from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin, urlsplit, urlunsplit
-from urllib.request import Request, urlopen
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 MAX_BYTES = 2 * 1024 * 1024
 MAX_REDIRECTS = 5
@@ -45,15 +44,21 @@ def validate_public_url(url: str) -> str:
     return urlunsplit((parts.scheme, parts.netloc, parts.path or "/", parts.query, ""))
 
 
+class NoRedirectHandler(HTTPRedirectHandler):
+    def redirect_request(self, request, response, code, message, headers, new_url):
+        return None
+
+
 def fetch_html(start_url: str) -> tuple[str, bytes, str]:
     current = validate_public_url(start_url)
+    opener = build_opener(NoRedirectHandler)
     for redirect_count in range(MAX_REDIRECTS + 1):
         request = Request(
             current,
             headers={"User-Agent": USER_AGENT, "Accept": "text/html,application/xhtml+xml"},
         )
         try:
-            response = urlopen(request, timeout=TIMEOUT_SECONDS)
+            response = opener.open(request, timeout=TIMEOUT_SECONDS)
         except HTTPError as exc:
             if exc.code in {301, 302, 303, 307, 308} and exc.headers.get("Location"):
                 if redirect_count >= MAX_REDIRECTS:
