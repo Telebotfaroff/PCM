@@ -66,6 +66,7 @@ async def discover_episodes(episode_url: str, timeout: float = 25.0) -> list[dic
         found[parsed.normalized] = current_page.title or "Episode"
 
         pages = [(parsed.normalized, episode_html)]
+        visited = {parsed.normalized}
         if current_page.series_url:
             series = parse_url(current_page.series_url)
             if series.hostname.lower() not in _ALLOWED_HOSTS or not urlsplit(series.normalized).path.startswith("/series/"):
@@ -74,13 +75,18 @@ async def discover_episodes(episode_url: str, timeout: float = 25.0) -> list[dic
                 try:
                     pages.append((series.normalized, await _get_text(client, series.normalized, parsed.normalized)))
                 except Exception:
-                    # The episode page may still contain the complete episode list.
+                    # Previous/next episode links may still provide the episode list.
                     pass
 
-        for page_url, html in pages:
-            parser = _EpisodeLinkParser()
-            parser.feed(html)
-            for href, label in parser.links:
+        # Follow explicit previous-episode links too; some provider pages do not expose
+        # a separate series page or a complete episode listing.
+        cursor = 0
+        while cursor < len(pages) and len(found) < _MAX_EPISODES:
+            page_url, html = pages[cursor]
+            cursor += 1
+            page_parser = _EpisodeLinkParser()
+            page_parser.feed(html)
+            for href, label in page_parser.links:
                 absolute = urljoin(page_url, href)
                 try:
                     link = parse_url(absolute)
@@ -90,12 +96,34 @@ async def discover_episodes(episode_url: str, timeout: float = 25.0) -> list[dic
                     continue
                 if not urlsplit(link.normalized).path.startswith("/videos/"):
                     continue
-                found.setdefault(link.normalized, label or urlsplit(link.normalized).path.rstrip("/").split("/")[-1])
-
+                found.setdefault(
+                    link.normalized,
+                    label or urlsplit(link.normalized).path.rstrip("/").split("/")[-1],
+                )
                 if len(found) >= _MAX_EPISODES:
                     break
-            if len(found) >= _MAX_EPISODES:
-                break
+
+            # Only episode pages have meaningful previous-episode navigation.
+            if urlsplit(page_url).path.startswith("/videos/"):
+                page = parse_html(html, page_url)
+                previous = page.previous_episode_url
+                if previous:
+                    try:
+                        previous_url = parse_url(previous).normalized
+                        if (
+                            urlsplit(previous_url).hostname in _ALLOWED_HOSTS
+                            and urlsplit(previous_url).path.startswith("/videos/")
+                            and previous_url not in visited
+                            and len(visited) < _MAX_EPISODES
+                        ):
+                            visited.add(previous_url)
+                            previous_html = await _get_text(client, previous_url, page_url)
+                            previous_page = parse_html(previous_html, previous_url)
+                            found.setdefault(previous_url, previous_page.title or "Episode")
+                            pages.append((previous_url, previous_html))
+                    except Exception:
+                        # A broken previous link should not discard already discovered episodes.
+                        pass
 
     # Keep the submitted episode first, then retain discovery order.
     ordered = [{"url": parsed.normalized, "title": found.pop(parsed.normalized)}]
