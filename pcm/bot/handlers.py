@@ -84,7 +84,7 @@ def register_handlers(app: Client, owner_id: int) -> None:
             else:
                 episodes = await discover_episodes(parsed.normalized)
                 if not episodes:
-                    raise ProviderResolveError("No episode links were found on this series page.")
+                    raise ValueError("No episode links were found on this series page.")
                 # Resolve one episode to confirm the series entries are downloadable.
                 first_result = await resolver.resolve(episodes[0]["url"])
                 title = first_result["page"].get("title") or episodes[0]["title"]
