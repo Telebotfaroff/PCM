@@ -5,6 +5,7 @@ from html.parser import HTMLParser
 from urllib.parse import urljoin, urlsplit
 
 import httpx
+import re
 
 from pcm.providers.watchhentai import parse_html
 from pcm.providers.watchhentai_resolver import ProviderResolveError, _get_text
@@ -97,6 +98,13 @@ async def discover_episodes(episode_url: str, timeout: float = 25.0) -> list[dic
                 break
 
     # Put the requested episode first; then keep page order for the rest.
-    ordered = [{"url": parsed.normalized, "title": found.pop(parsed.normalized)}]
-    ordered.extend({"url": url, "title": title} for url, title in found.items())
+    ordered = [{"url": url, "title": title} for url, title in found.items()]
+
+    def episode_number(item: dict[str, str]) -> tuple[int, str]:
+        text = item["title"] + " " + urlsplit(item["url"]).path
+        match = re.search(r"episode[\\s_-]*(\\d+)", text, re.IGNORECASE)
+        return (int(match.group(1)) if match else 10**9, item["url"])
+
+    # Series downloads should normally run oldest-to-newest when episode numbers exist.
+    ordered.sort(key=episode_number)
     return ordered[:_MAX_EPISODES]
