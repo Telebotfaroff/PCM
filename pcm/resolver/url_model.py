@@ -29,14 +29,7 @@ def _validate_literal_ip(host: str) -> None:
         address = ipaddress.ip_address(host.strip("[]"))
     except ValueError:
         return
-    if (
-        address.is_private
-        or address.is_loopback
-        or address.is_link_local
-        or address.is_multicast
-        or address.is_reserved
-        or address.is_unspecified
-    ):
+    if not address.is_global:
         raise URLValidationError("Private or reserved IP destinations are not allowed")
 
 
