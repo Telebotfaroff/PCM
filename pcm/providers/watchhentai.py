@@ -80,7 +80,7 @@ class _PageParser(HTMLParser):
                 self.page.previous_episode_url = href or self.page.previous_episode_url
             if "/series/" in href:
                 path = href.split("?", 1)[0].rstrip("/")
-                is_specific_series = path.count("/") >= 4
+                is_specific_series = path.strip("/") != "series"
                 in_all_episodes = any("item-all" in parent for parent in self._div_classes)
                 # Prefer the explicit “All Episodes” link. Otherwise keep the first
                 # specific series link, never the generic /series/ navigation link.
