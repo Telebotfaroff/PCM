@@ -4,7 +4,7 @@ PCM is a private Telegram-controlled download and upload manager. The initial st
 
 ## Current status
 
-The repository is in the foundation phase. Implemented so far: project configuration, owner-only Pyrogram starter commands, basic URL parsing/classification, job state transitions, InsForge PostgreSQL connection-pool scaffold, initial SQL schema, and starter tests. URL submission currently validates only; it does not download or upload content yet. Durable job repository methods and the full transfer pipeline remain to be implemented.
+The repository is in the foundation phase. Implemented so far: project configuration, owner-only Pyrogram starter commands, basic URL parsing/classification, job state transitions, InsForge PostgreSQL connection-pool scaffold, initial SQL schema, a saved-HTML parser for the WatchHentai provider, and starter tests. URL submission currently validates only; it does not download or upload content yet. Durable job repository methods and the full transfer pipeline remain to be implemented.
 
 ## Requirements
 
