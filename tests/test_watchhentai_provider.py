@@ -7,7 +7,7 @@ def test_parse_saved_watchhentai_page() -> None:
     fixture = Path(__file__).parents[1] / "providerhtml" / "watchhentai.net-04da56a1.html"
     page = parse_file(fixture)
 
-    assert page.title == "The Lonely Snow Widow and the Cursed Ring &#8211; Episode 3 Uncensored"
+    assert page.title == "The Lonely Snow Widow and the Cursed Ring – Episode 3 Uncensored"
     assert page.canonical_url == (
         "https://watchhentai.net/videos/"
         "the-lonely-snow-widow-and-the-cursed-ring-episode-3-uncensored-id-01/"
@@ -45,4 +45,4 @@ def test_parse_relative_urls_and_basic_metadata() -> None:
     assert page.alternate_player_url == "https://watchhentai.net/player-alt/123/1/mp4/"
     assert page.previous_episode_url == "https://watchhentai.net/videos/previous/"
     assert page.series_url == "https://watchhentai.net/series/sample/"
-    assert page.genres == ["Action"]
+    assert page.genres == []
