@@ -1,7 +1,6 @@
 """Owner-only Telegram handlers for URL validation and WatchHentai downloads."""
 from __future__ import annotations
 
-import asyncio
 import re
 import secrets
 import time
@@ -16,7 +15,7 @@ from pcm.providers.watchhentai_resolver import ProviderResolveError, WatchHentai
 from pcm.resolver.url_model import URLValidationError, parse_url
 from pcm.transfers.downloader import download_media
 
-_URL_PATTERN = re.compile(r"https?://[^\\s<>]+", re.IGNORECASE)
+_URL_PATTERN = re.compile(r"https?://[^\s<>]+", re.IGNORECASE)
 _EPISODE_PATH = re.compile(r"/videos/[^/]+/?$", re.IGNORECASE)
 _MAX_TELEGRAM_BYTES = 2 * 1024 * 1024 * 1024
 
@@ -31,22 +30,22 @@ def register_handlers(app: Client, owner_id: int) -> None:
     @app.on_message(filters.command("start") & private_owner)
     async def start_handler(_: Client, message: Message) -> None:
         await message.reply_text(
-            "PCM — Private Content Manager\\n\\n"
-            "Send a WatchHentai episode URL to resolve available qualities and download it.\\n"
+            "PCM — Private Content Manager\n\n"
+            "Send a WatchHentai episode URL to resolve available qualities and download it.\n"
             "Only the configured owner can use this bot."
         )
 
     @app.on_message(filters.command("help") & private_owner)
     async def help_handler(_: Client, message: Message) -> None:
         await message.reply_text(
-            "PCM commands:\\n"
-            "/start — status and usage\\n"
-            "/help — this message\\n\\n"
+            "PCM commands:\n"
+            "/start — status and usage\n"
+            "/help — this message\n\n"
             "Send a WatchHentai episode URL. PCM will inspect its player page, "
             "show available qualities, download the selected source, and send the video here."
         )
 
-    @app.on_message(filters.regex(r"^/resolve(?:\\s|$)") & private_owner)
+    @app.on_message(filters.regex(r"^/resolve(?:\s|$)") & private_owner)
     async def resolve_command(_: Client, message: Message) -> None:
         parts = (message.text or "").split(maxsplit=1)
         if len(parts) < 2:
@@ -87,8 +86,8 @@ def register_handlers(app: Client, owner_id: int) -> None:
             if not buttons:
                 raise ProviderResolveError("No downloadable qualities were found.")
             await status.edit_text(
-                f"🎬 <b>{title}</b>\\n\\n"
-                f"Available qualities: {', '.join(s['label'] for s in sources)}\\n"
+                f"🎬 <b>{title}</b>\n\n"
+                f"Available qualities: {', '.join(s['label'] for s in sources)}\n"
                 "Choose a quality to download:",
                 reply_markup=InlineKeyboardMarkup([buttons[i:i + 2] for i in range(0, len(buttons), 2)]),
             )
@@ -116,7 +115,7 @@ def register_handlers(app: Client, owner_id: int) -> None:
             await resolve_episode(message, candidate)
             return
         await message.reply_text(
-            f"Validated: {parsed.hostname} ({parsed.scheme.upper()}).\\n"
+            f"Validated: {parsed.hostname} ({parsed.scheme.upper()}).\n"
             "Live media resolution is currently enabled for WatchHentai episode URLs."
         )
 
@@ -160,9 +159,9 @@ def register_handlers(app: Client, owner_id: int) -> None:
                 last_update = now
                 percent = f"{current * 100 / total:.1f}%" if total else "size unknown"
                 await status.edit_text(
-                    f"📥 <b>Downloading {choice['label']}</b>\\n"
+                    f"📥 <b>Downloading {choice['label']}</b>\n"
                     f"{current / 1048576:.1f} MiB / {total / 1048576:.1f} MiB ({percent})"
-                    if total else f"📥 <b>Downloading {choice['label']}</b>\\n{current / 1048576:.1f} MiB"
+                    if total else f"📥 <b>Downloading {choice['label']}</b>\n{current / 1048576:.1f} MiB"
                 )
 
             await download_media(
@@ -176,7 +175,7 @@ def register_handlers(app: Client, owner_id: int) -> None:
             await app.send_video(
                 chat_id=query.message.chat.id,
                 video=str(output),
-                caption=f"🎬 <b>{choice['title']}</b>\\n🎥 Quality: <b>{choice['label']}</b>",
+                caption=f"🎬 <b>{choice['title']}</b>\n🎥 Quality: <b>{choice['label']}</b>",
                 supports_streaming=True,
             )
             await status.edit_text("✅ Download and Telegram upload completed.")
