@@ -97,14 +97,7 @@ async def discover_episodes(episode_url: str, timeout: float = 25.0) -> list[dic
             if len(found) >= _MAX_EPISODES:
                 break
 
-    # Collect all unique episode links from the episode and series pages.
-    ordered = [{"url": url, "title": title} for url, title in found.items()]
-
-    def episode_number(item: dict[str, str]) -> tuple[int, str]:
-        text = item["title"] + " " + urlsplit(item["url"]).path
-        match = re.search(r"episode[\s_-]*(\d+)", text, re.IGNORECASE)
-        return (int(match.group(1)) if match else 10**9, item["url"])
-
-    # Series downloads should normally run oldest-to-newest when episode numbers exist.
-    ordered.sort(key=episode_number)
+    # Keep the submitted episode first, then retain discovery order.
+    ordered = [{"url": parsed.normalized, "title": found.pop(parsed.normalized)}]
+    ordered.extend({"url": url, "title": title} for url, title in found.items())
     return ordered[:_MAX_EPISODES]
