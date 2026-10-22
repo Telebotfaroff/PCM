@@ -15,6 +15,7 @@ from pcm.core.config import Settings
 from pcm.providers.registry import get_provider, get_provider_by_name
 from pcm.resolver.url_model import URLValidationError, parse_url
 from pcm.transfers.downloader import download_media
+from pcm.transfers.media_metadata import prepare_video_metadata
 
 _URL_PATTERN = re.compile(r"https?://[^\s<>]+", re.IGNORECASE)
 _MAX_TELEGRAM_BYTES = 2 * 1024 * 1024 * 1024
@@ -216,6 +217,7 @@ def register_handlers(app: Client, owner_id: int) -> None:
         requested_label: str | None = None,
     ) -> None:
         output: Path | None = None
+        thumbnail: Path | None = None
         try:
             provider = get_provider_by_name(provider_name)
             if provider is None:
@@ -262,6 +264,13 @@ def register_handlers(app: Client, owner_id: int) -> None:
                 f"📦 Size: <b>{file_size / 1048576:.2f} MiB</b>\n"
                 "📤 Preparing Telegram upload…"
             )
+            metadata = await prepare_video_metadata(output)
+            thumbnail = metadata.thumbnail
+            if not metadata.duration or not metadata.width or not metadata.height:
+                await status.edit_text(
+                    f"⚠️ Could not read complete video metadata for <b>{title[:100]}</b>. "
+                    "Uploading with available metadata…"
+                )
             upload_meter = TransferProgress(
                 title, "📤 Uploading", quality=source["label"]
             )
@@ -279,12 +288,18 @@ def register_handlers(app: Client, owner_id: int) -> None:
                 chat_id=chat_id, video=str(output),
                 caption=f"🎬 <b>{title[:900]}</b>\n🎥 Quality: <b>{source['label']}</b>",
                 supports_streaming=True,
+                duration=metadata.duration,
+                width=metadata.width,
+                height=metadata.height,
+                thumb=str(thumbnail) if thumbnail else None,
                 progress=upload_progress,
             )
             await status.edit_text(f"✅ Completed: {title[:150]}")
         finally:
             if output:
                 output.unlink(missing_ok=True)
+            if thumbnail:
+                thumbnail.unlink(missing_ok=True)
 
     @app.on_callback_query(filters.regex(r"^pcm_all:") & owner)
     async def all_episodes_callback(_: Client, query) -> None:
