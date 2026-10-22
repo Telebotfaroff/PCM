@@ -10,6 +10,7 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from pcm.bot.access import owner_filter
 from pcm.bot.progress import TransferProgress
+from pcm.bot.persistent_settings import load_preferences, save_preferences
 from pcm.bot.ytdlp_handler import register_ytdlp_handler
 from pcm.core.config import Settings
 from pcm.providers.registry import get_provider, get_provider_by_name
@@ -28,12 +29,27 @@ def register_handlers(app: Client, owner_id: int) -> None:
     private_owner = filters.private & owner
     choices: dict[str, dict] = {}
     menus: dict[str, dict] = {}
-    preferences = {"auto_quality": True, "delete_menu": True, "dump_enabled": False}
-    dump_channel: str | None = None
+    preferences = {"auto_quality": True, "delete_menu": True, "dump_enabled": False, "dump_channel": None}
+    settings_loaded = False
     awaiting_dump_channel: set[int] = set()
+
+    async def ensure_settings_loaded() -> None:
+        nonlocal settings_loaded
+        if not settings_loaded:
+            saved = await load_preferences(owner_id)
+            preferences.update(saved)
+            settings_loaded = True
+
+    async def persist_settings() -> None:
+        await save_preferences(owner_id, preferences)
 
     @app.on_message(filters.command("me") & private_owner)
     async def me_handler(_: Client, message: Message) -> None:
+        try:
+            await ensure_settings_loaded()
+        except Exception as exc:
+            await message.reply_text(f"❌ Could not load settings from database: {str(exc)[:300]}")
+            return
         await message.reply_text(
             "⚙️ <b>PCM Control Panel</b>\\nChoose a setting:",
             reply_markup=InlineKeyboardMarkup([
@@ -50,6 +66,11 @@ def register_handlers(app: Client, owner_id: int) -> None:
         if not query.message:
             await query.answer()
             return
+        try:
+            await ensure_settings_loaded()
+        except Exception as exc:
+            await query.answer(f"Database error: {str(exc)[:180]}", show_alert=True)
+            return
         action = query.data.split(":", 1)[1]
         if action == "quality":
             preferences["auto_quality"] = not preferences["auto_quality"]
@@ -61,6 +82,11 @@ def register_handlers(app: Client, owner_id: int) -> None:
             awaiting_dump_channel.add(query.from_user.id)
             await query.answer("Send the channel @username or numeric ID in this chat.", show_alert=True)
             await query.message.reply_text("📦 Send the dump channel @username or numeric ID. The bot must be an administrator there.")
+            return
+        try:
+            await persist_settings()
+        except Exception as exc:
+            await query.answer(f"Could not save settings: {str(exc)[:180]}", show_alert=True)
             return
         await query.answer("Settings updated." if action != "refresh" else "Settings refreshed.")
         await query.message.edit_text(
@@ -88,7 +114,9 @@ def register_handlers(app: Client, owner_id: int) -> None:
                 if "administrator" not in status and "owner" not in status and "creator" not in status:
                     await message.reply_text("❌ Make the bot an administrator in that channel, then send the channel again.")
                     return
-                dump_channel = str(chat.id)
+                await ensure_settings_loaded()
+                preferences["dump_channel"] = str(chat.id)
+                await persist_settings()
                 awaiting_dump_channel.discard(message.from_user.id)
                 await message.reply_text(f"✅ Dump channel saved: <b>{chat.title or chat.id}</b>\\nEnable it from /me when you're ready.")
             except Exception as exc:
@@ -381,12 +409,12 @@ def register_handlers(app: Client, owner_id: int) -> None:
                 progress=upload_progress,
             )
             if preferences["dump_enabled"]:
-                if not dump_channel:
+                if not preferences.get("dump_channel"):
                     await status.edit_text("⚠️ Video sent to chat, but dump upload is enabled and no dump channel is configured. Set it in /me.")
                 else:
                     try:
                         await app.send_video(
-                            chat_id=int(dump_channel),
+                            chat_id=int(preferences["dump_channel"]),
                             video=str(output),
                             caption=f"🎬 <b>{title[:900]}</b>\\n🎥 Quality: <b>{source['label']}</b>",
                             supports_streaming=True,
