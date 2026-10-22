@@ -37,6 +37,7 @@ class WatchHentaiPage:
     alternate_player_url: str | None = None
     player_id: str | None = None
     previous_episode_url: str | None = None
+    next_episode_url: str | None = None
     series_url: str | None = None
     genres: list[str] = field(default_factory=list)
     episodes: list[WatchHentaiEpisode] = field(default_factory=list)
@@ -128,8 +129,11 @@ class _PageParser(HTMLParser):
                 self.page.alternate_player_url = alternate
         elif tag == "a":
             href = attr.get("href", "").strip()
-            if "item-prev" in classes or attr.get("aria-label", "").lower() == "previous episode":
+            aria_label = attr.get("aria-label", "").lower()
+            if "item-prev" in classes or aria_label == "previous episode":
                 self.page.previous_episode_url = href or self.page.previous_episode_url
+            if "item-next" in classes or aria_label == "next episode":
+                self.page.next_episode_url = href or self.page.next_episode_url
 
             in_all_episodes = any("item-all" in parent for parent in self._div_classes)
             if "/series/" in urlparse(href).path and in_all_episodes:
