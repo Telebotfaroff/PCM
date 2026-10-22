@@ -31,7 +31,7 @@ def test_parse_relative_urls_and_basic_metadata() -> None:
       <h1 class="module-title">Sample Episode</h1>
       <iframe data-primary-player-url="/player/123/1/mp4/"
               data-alternate-player-url="/player-alt/123/1/mp4/"></iframe>
-      <nav><div class="item item-prev"><a href="/videos/previous/">Previous</a></div></nav>
+      <nav><div class="item item-prev"><a href="/videos/previous/" aria-label="Previous episode">Previous</a></div></nav>
       <div class="item item-all"><a href="/series/sample/">All Episodes</a></div>
       <a href="/genre/action/" title="Action Hentai">Action</a>
     </body></html>
