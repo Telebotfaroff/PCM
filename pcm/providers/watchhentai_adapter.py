@@ -4,7 +4,7 @@ from __future__ import annotations
 from urllib.parse import urlsplit
 
 from pcm.providers.watchhentai import classify_url
-from pcm.providers.watchhentai_resolver import ProviderResolveError, WatchHentaiResolver
+from pcm.providers.watchhentai_resolver import WatchHentaiResolver
 from pcm.providers.watchhentai_series import discover_episodes
 
 
