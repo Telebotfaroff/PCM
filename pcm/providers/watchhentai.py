@@ -68,19 +68,16 @@ class _PageParser(HTMLParser):
                 self.page.alternate_player_url = alternate
             if primary:
                 parts = primary.rstrip("/").split("/")
-                if len(parts) >= 2 and parts[-2].isdigit():
-                    self.page.player_id = parts[-2]
+                if len(parts) >= 3 and parts[-3].isdigit():
+                    self.page.player_id = parts[-3]
         elif tag == "a":
             href = attr.get("href", "")
             classes = attr.get("class", "").split()
             if "item-prev" in classes or attr.get("aria-label", "").lower() == "previous episode":
                 self.page.previous_episode_url = href or self.page.previous_episode_url
-            if "item-all" in classes:
+            if "/series/" in href:
                 self.page.series_url = href or self.page.series_url
-            if href and "/genre/" in href:
-                label = attr.get("title", "").removesuffix(" Hentai").strip()
-                if label:
-                    self._add_unique(self.page.genres, label)
+            # Ignore global navigation genres; they are not episode metadata.
 
     def handle_endtag(self, tag: str) -> None:
         if self._capture == tag:
