@@ -56,6 +56,8 @@ async def run_worker(repository: JobRepository, processor: JobProcessor, *, poll
                     else:
                         status = await repository.finish(job_id, worker_id)
                     logger.info("PCM job id=%s transitioned to %s", job_id, status)
+                    if status == "retrying":
+                        await asyncio.sleep(min(2 ** int(job["attempts"]), 60))
             except asyncio.CancelledError:
                 processor_task.cancel()
                 try:
