@@ -14,6 +14,7 @@ _DEFAULTS: dict[str, Any] = {
     "dump_channel": None,
     "destinations": ["telegram"],
     "gofile_token": "",
+    "gofile_guest": False,
     "gofile_folder_id": "",
 }
 
