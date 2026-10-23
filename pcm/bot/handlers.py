@@ -330,25 +330,6 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
                     reply_markup=InlineKeyboardMarkup(buttons),
                 )
                 return
-            if len(parts) == 4 and parts[1] == "jobaction" and parts[2] in {"pause", "resume", "cancel", "retry"} and parts[3].isdigit():
-                verb, jid = parts[2], int(parts[3])
-                try:
-                    row = await jobs.request_action(owner_id, jid, verb)
-                except Exception as exc:
-                    await query.answer(f"Action failed: {str(exc)[:150]}", show_alert=True)
-                    return
-                if not row:
-                    await query.answer("Job not found.", show_alert=True)
-                    return
-                await query.answer(f"Job #{jid}: {row['status']}")
-                await query.message.edit_text(
-                    f"✅ Job #{jid} updated: <b>{row['status']}</b>",
-                    reply_markup=InlineKeyboardMarkup([
-                        [InlineKeyboardButton("🔄 View job", callback_data=f"pcm_me:job:{jid}")],
-                        [InlineKeyboardButton("⬅️ Jobs", callback_data="pcm_me:jobs")],
-                    ]),
-                )
-                return
         elif action == "help":
             await query.answer()
             await query.message.edit_text(
