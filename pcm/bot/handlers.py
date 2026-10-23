@@ -1,6 +1,7 @@
 """Owner-only Telegram handlers routed through the provider registry."""
 from __future__ import annotations
 
+import os
 import re
 import secrets
 from collections.abc import Awaitable, Callable
@@ -70,7 +71,7 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
         parts = (message.text or "").split(maxsplit=2)
         action = parts[1].lower() if len(parts) > 1 else "status"
         if action == "status":
-            token_set = bool(str(preferences.get("gofile_token") or "").strip())
+            token_set = bool(str(preferences.get("gofile_token") or os.getenv("GOFILE_TOKEN", "")).strip())
             destinations = ", ".join(preferences.get("destinations") or ["telegram"])
             mode = "account token" if token_set else "guest upload"
             await message.reply_text(
@@ -88,6 +89,10 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
                 await message.reply_text("Usage: /gofile token YOUR_API_KEY")
                 return
             token = parts[2].strip()
+            try:
+                await message.delete()
+            except Exception:
+                pass
             if len(token) > 500 or any(ch.isspace() for ch in token):
                 await message.reply_text("❌ That token format is not valid.")
                 return
@@ -95,7 +100,6 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
             try:
                 await persist_settings()
             except Exception as exc:
-                preferences["gofile_token"] = ""
                 await message.reply_text(f"❌ Could not save GoFile settings: {str(exc)[:200]}")
                 return
             await message.reply_text("✅ GoFile account token saved. I will not display it again.")
@@ -518,7 +522,8 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
             settings.temp_dir.mkdir(parents=True, exist_ok=True)
             safe_title = re.sub(r"[^A-Za-z0-9._-]+", "_", title).strip("._")[:70] or "episode"
             output = settings.temp_dir / f"{safe_title}-{secrets.token_hex(4)}.mp4"
-            max_bytes = min(settings.max_file_size_mb * 1024 * 1024, _MAX_TELEGRAM_BYTES)
+            configured_limit = settings.max_file_size_mb * 1024 * 1024
+            max_bytes = min(configured_limit, _MAX_TELEGRAM_BYTES) if "telegram" in targets else configured_limit
             download_meter = TransferProgress(
                 title, "📥 Downloading", quality=source["label"]
             )
@@ -538,8 +543,8 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
                 progress=download_progress,
             )
             file_size = output.stat().st_size
-            if file_size > _MAX_TELEGRAM_BYTES:
-                raise RuntimeError("File exceeds Telegram's 2 GiB upload limit.")
+            if "telegram" in targets and file_size > _MAX_TELEGRAM_BYTES:
+                raise RuntimeError("File exceeds Telegram's 2 GiB upload limit. Choose GoFile-only with /dest gofile.")
 
             await status.edit_text(
                 f"✅ Download complete: <b>{title[:100]}</b>\n"
@@ -594,7 +599,7 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
             if "gofile" in targets:
                 try:
                     await status.edit_text(f"☁️ Uploading to GoFile: {title[:100]}…")
-                    token = str(preferences.get("gofile_token") or "").strip() or None
+                    token = str(preferences.get("gofile_token") or os.getenv("GOFILE_TOKEN", "")).strip() or None
                     folder_id = str(preferences.get("gofile_folder_id") or "").strip() or None
                     result = await gofile_upload(output, token=token, folder_id=folder_id)
                     await status.reply_text(
