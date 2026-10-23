@@ -362,10 +362,7 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
             await query.answer(f"Could not save settings: {str(exc)[:180]}", show_alert=True)
             return
         await query.answer("Settings updated.")
-        await query.message.edit_text(
-            "⚙️ <b>PCM Control Panel</b>\nChoose a setting or open a section below.",
-            reply_markup=panel_keyboard(),
-        )
+        await show_panel(query.message, edit=True)
 
     # Run after URL processing; a broad text handler in the same group would swallow URL messages.
     @app.on_message(filters.text & private_owner, group=2)
