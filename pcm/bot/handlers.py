@@ -20,8 +20,8 @@ from pcm.jobs.repository import JobRepository
 from pcm.providers.registry import get_provider, get_provider_by_name
 from pcm.resolver.url_model import URLValidationError, parse_url
 from pcm.transfers.downloader import download_media
-from pcm.transfers.media_metadata import prepare_video_metadata
 from pcm.transfers.gofile import upload_file as gofile_upload
+from pcm.transfers.media_metadata import prepare_video_metadata
 
 _URL_PATTERN = re.compile(r"https?://[^\s<>]+", re.IGNORECASE)
 _MAX_TELEGRAM_BYTES = 2 * 1024 * 1024 * 1024
