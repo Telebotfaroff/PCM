@@ -25,6 +25,22 @@ _MAX_TELEGRAM_BYTES = 2 * 1024 * 1024 * 1024
 def register_handlers(app: Client, owner_id: int) -> None:
     """Register private owner-only commands and media selection callbacks."""
     register_ytdlp_handler(app, owner_id)
+
+    # Diagnostic handler runs before owner-only handlers and never logs message contents.
+    @app.on_message(filters.private, group=-1)
+    async def private_message_diagnostic(_: Client, message: Message) -> None:
+        sender_id = message.from_user.id if message.from_user else None
+        is_owner = sender_id == owner_id
+        text = message.text or message.caption or ""
+        command = text.split(maxsplit=1)[0] if text.startswith("/") else "<non-command>"
+        import logging
+        logging.getLogger("pcm.telegram").info(
+            "Incoming private message: sender_id=%s owner_match=%s command=%s",
+            sender_id,
+            is_owner,
+            command[:40],
+        )
+
     owner = owner_filter(owner_id)
     private_owner = filters.private & owner
     choices: dict[str, dict] = {}
