@@ -237,7 +237,7 @@ def register_ytdlp_handler(app: Client, owner_id: int) -> None:
                     )
             gofile_links: list[str] = []
             if "gofile" in destinations:
-                token = str(preferences.get("gofile_token") or os.getenv("GOFILE_TOKEN", "")).strip() or None
+                token = None if preferences.get("gofile_guest", False) else (str(preferences.get("gofile_token") or os.getenv("GOFILE_TOKEN", "")).strip() or None)
                 for part_index, upload_path in enumerate(upload_paths, start=1):
                     await status.edit_text(
                         f"☁️ **GoFile upload**\nPart {part_index}/{len(upload_paths)}"
