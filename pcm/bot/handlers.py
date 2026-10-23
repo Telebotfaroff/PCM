@@ -1,6 +1,7 @@
 """Owner-only Telegram handlers routed through the provider registry."""
 from __future__ import annotations
 
+import asyncio
 import os
 import re
 import secrets
