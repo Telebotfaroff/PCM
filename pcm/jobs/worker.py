@@ -30,20 +30,39 @@ async def run_worker(repository: JobRepository, processor: JobProcessor, *, poll
                 continue
             job_id = int(job["id"])
             logger.info("Claimed PCM job id=%s type=%s attempt=%s", job_id, job["job_type"], job["attempts"])
+            processor_task = asyncio.create_task(processor(job), name=f"pcm-job-{job_id}")
             try:
-                await processor(job)
-            except asyncio.CancelledError:
-                raise
-            except Exception as exc:
-                logger.exception("PCM job failed id=%s", job_id)
-                try:
-                    status = await repository.finish(job_id, worker_id, error=str(exc))
+                while not processor_task.done():
+                    done, _ = await asyncio.wait({processor_task}, timeout=45)
+                    if done:
+                        break
+                    alive = await repository.heartbeat(job_id, worker_id, lease_seconds=300)
+                    if not alive:
+                        logger.info("Job id=%s cancellation requested or lease lost; stopping processor", job_id)
+                        processor_task.cancel()
+                        try:
+                            await processor_task
+                        except asyncio.CancelledError:
+                            pass
+                        break
+                if processor_task.cancelled():
+                    status = await repository.finish(job_id, worker_id, error="Cancelled by owner or worker lease lost")
                     logger.info("PCM job id=%s transitioned to %s", job_id, status)
-                except Exception:
-                    logger.exception("Could not persist failed state for job id=%s", job_id)
-            else:
-                status = await repository.finish(job_id, worker_id)
-                logger.info("PCM job id=%s transitioned to %s", job_id, status)
+                else:
+                    error = processor_task.exception()
+                    if error is not None:
+                        logger.exception("PCM job failed id=%s", job_id, exc_info=error)
+                        status = await repository.finish(job_id, worker_id, error=str(error))
+                    else:
+                        status = await repository.finish(job_id, worker_id)
+                    logger.info("PCM job id=%s transitioned to %s", job_id, status)
+            except asyncio.CancelledError:
+                processor_task.cancel()
+                try:
+                    await processor_task
+                except asyncio.CancelledError:
+                    pass
+                raise
         except asyncio.CancelledError:
             logger.info("Job worker stopping")
             raise
