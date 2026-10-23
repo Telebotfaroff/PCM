@@ -151,7 +151,7 @@ def register_ytdlp_handler(app: Client, owner_id: int) -> None:
             while True:
                 try:
                     raw = await asyncio.wait_for(process.stdout.readline(), timeout=3600)
-                except asyncio.TimeoutError as exc:
+                except TimeoutError as exc:
                     process.kill()
                     await process.wait()
                     raise RuntimeError("yt-dlp produced no output for one hour; stopped.") from exc
