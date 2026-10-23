@@ -97,7 +97,7 @@ async def discover_episodes(url: str, timeout: float = 25.0) -> list[dict[str, s
                     series_html = page_html if input_type == "series" else await _get_text(
                         client, series.normalized, parsed.normalized
                     )
-                    pages.insert(0, (series.normalized, series_html))
+                    pages.append((series.normalized, series_html))
                 except Exception:
                     # The current episode remains usable even if its series page fails.
                     pass
