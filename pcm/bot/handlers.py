@@ -19,6 +19,7 @@ from pcm.providers.registry import get_provider, get_provider_by_name
 from pcm.resolver.url_model import URLValidationError, parse_url
 from pcm.transfers.downloader import download_media
 from pcm.transfers.media_metadata import prepare_video_metadata
+from pcm.transfers.gofile import upload_file as gofile_upload
 
 _URL_PATTERN = re.compile(r"https?://[^\s<>]+", re.IGNORECASE)
 _MAX_TELEGRAM_BYTES = 2 * 1024 * 1024 * 1024
@@ -48,7 +49,7 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
     private_owner = filters.private & owner
     choices: dict[str, dict] = {}
     menus: dict[str, dict] = {}
-    preferences = {"auto_quality": True, "delete_menu": True, "dump_enabled": False, "dump_channel": None}
+    preferences = {"auto_quality": True, "delete_menu": True, "dump_enabled": False, "dump_channel": None, "destinations": ["telegram"], "gofile_token": "", "gofile_folder_id": ""}
     settings_loaded = False
     awaiting_dump_channel: set[int] = set()
 
@@ -61,6 +62,78 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
 
     async def persist_settings() -> None:
         await save_preferences(owner_id, preferences)
+
+
+    @app.on_message(filters.command("gofile") & private_owner)
+    async def gofile_command(_: Client, message: Message) -> None:
+        await ensure_settings_loaded()
+        parts = (message.text or "").split(maxsplit=2)
+        action = parts[1].lower() if len(parts) > 1 else "status"
+        if action == "status":
+            token_set = bool(str(preferences.get("gofile_token") or "").strip())
+            destinations = ", ".join(preferences.get("destinations") or ["telegram"])
+            mode = "account token" if token_set else "guest upload"
+            await message.reply_text(
+                "☁️ <b>GoFile settings</b>\n"
+                f"Mode: {mode}\n"
+                f"Default destinations: {destinations}\n\n"
+                "Commands:\n/gofile guest — use guest uploads\n"
+                "/gofile token YOUR_API_KEY — save account token\n"
+                "/gofile clear — remove saved token\n"
+                "/dest telegram | gofile | both"
+            )
+            return
+        if action == "token":
+            if len(parts) < 3 or not parts[2].strip():
+                await message.reply_text("Usage: /gofile token YOUR_API_KEY")
+                return
+            token = parts[2].strip()
+            if len(token) > 500 or any(ch.isspace() for ch in token):
+                await message.reply_text("❌ That token format is not valid.")
+                return
+            preferences["gofile_token"] = token
+            try:
+                await persist_settings()
+            except Exception as exc:
+                preferences["gofile_token"] = ""
+                await message.reply_text(f"❌ Could not save GoFile settings: {str(exc)[:200]}")
+                return
+            await message.reply_text("✅ GoFile account token saved. I will not display it again.")
+            return
+        if action in {"guest", "clear"}:
+            preferences["gofile_token"] = ""
+            try:
+                await persist_settings()
+            except Exception as exc:
+                await message.reply_text(f"❌ Could not save settings: {str(exc)[:200]}")
+                return
+            await message.reply_text("✅ GoFile token cleared. Guest uploads will be used.")
+            return
+        await message.reply_text("Usage: /gofile [status|guest|clear|token YOUR_API_KEY]")
+
+    @app.on_message(filters.command("dest") & private_owner)
+    async def destination_command(_: Client, message: Message) -> None:
+        await ensure_settings_loaded()
+        parts = (message.text or "").split(maxsplit=1)
+        if len(parts) < 2:
+            current = ", ".join(preferences.get("destinations") or ["telegram"])
+            await message.reply_text(
+                f"Current default destination(s): {current}\n"
+                "Set with /dest telegram, /dest gofile, or /dest both"
+            )
+            return
+        target = parts[1].strip().lower()
+        mapping = {"telegram": ["telegram"], "gofile": ["gofile"], "both": ["telegram", "gofile"]}
+        if target not in mapping:
+            await message.reply_text("Use /dest telegram, /dest gofile, or /dest both")
+            return
+        preferences["destinations"] = mapping[target]
+        try:
+            await persist_settings()
+        except Exception as exc:
+            await message.reply_text(f"❌ Could not save destination: {str(exc)[:200]}")
+            return
+        await message.reply_text(f"✅ Default destination set to: {', '.join(mapping[target])}")
 
     @app.on_message(filters.command("me") & private_owner)
     async def me_handler(_: Client, message: Message) -> None:
@@ -209,7 +282,9 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
             "/help — this message\n"
             "/resolve URL — discover related episodes\n"
             "/jobs — show recent persistent jobs\n"
-            "/pause ID, /resume ID, /cancel ID, /retry ID — control jobs\n\n"
+            "/pause ID, /resume ID, /cancel ID, /retry ID — control jobs\n"
+            "/dest telegram|gofile|both — choose upload destination\n"
+            "/gofile — configure guest/account-token uploads\n\n"
             "/ytdlp URL — download a supported video with yt-dlp\n"
             "Send an episode URL to download only that episode. Send a series URL to list its episodes and choose "
             "one episode or Download series to process the whole list sequentially."
