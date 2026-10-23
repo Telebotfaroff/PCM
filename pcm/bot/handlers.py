@@ -51,7 +51,7 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
     private_owner = filters.private & owner
     choices: dict[str, dict] = {}
     menus: dict[str, dict] = {}
-    preferences = {"auto_quality": True, "delete_menu": True, "dump_enabled": False, "dump_channel": None, "destinations": ["telegram"], "gofile_token": "", "gofile_folder_id": ""}
+    preferences = {"auto_quality": True, "delete_menu": True, "dump_enabled": False, "dump_channel": None, "destinations": ["telegram"], "gofile_token": "", "gofile_guest": false, "gofile_folder_id": ""}
     settings_loaded = False
     awaiting_dump_channel: set[int] = set()
 
@@ -72,7 +72,7 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
         parts = (message.text or "").split(maxsplit=2)
         action = parts[1].lower() if len(parts) > 1 else "status"
         if action == "status":
-            token_set = bool(str(preferences.get("gofile_token") or os.getenv("GOFILE_TOKEN", "")).strip())
+            token_set = not preferences.get("gofile_guest", False) and bool(str(preferences.get("gofile_token") or os.getenv("GOFILE_TOKEN", "")).strip())
             destinations = ", ".join(preferences.get("destinations") or ["telegram"])
             mode = "account token" if token_set else "guest upload"
             await message.reply_text(
@@ -97,16 +97,22 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
             if len(token) > 500 or any(ch.isspace() for ch in token):
                 await message.reply_text("❌ That token format is not valid.")
                 return
+            previous_token = preferences.get("gofile_token", "")
+            previous_guest = preferences.get("gofile_guest", False)
             preferences["gofile_token"] = token
+            preferences["gofile_guest"] = False
             try:
                 await persist_settings()
             except Exception as exc:
+                preferences["gofile_token"] = previous_token
+                preferences["gofile_guest"] = previous_guest
                 await message.reply_text(f"❌ Could not save GoFile settings: {str(exc)[:200]}")
                 return
             await message.reply_text("✅ GoFile account token saved. I will not display it again.")
             return
         if action in {"guest", "clear"}:
             preferences["gofile_token"] = ""
+            preferences["gofile_guest"] = True
             try:
                 await persist_settings()
             except Exception as exc:
@@ -600,7 +606,7 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
             if "gofile" in targets:
                 try:
                     await status.edit_text(f"☁️ Uploading to GoFile: {title[:100]}…")
-                    token = str(preferences.get("gofile_token") or os.getenv("GOFILE_TOKEN", "")).strip() or None
+                    token = None if preferences.get("gofile_guest", False) else (str(preferences.get("gofile_token") or os.getenv("GOFILE_TOKEN", "")).strip() or None)
                     folder_id = str(preferences.get("gofile_folder_id") or "").strip() or None
                     result = await gofile_upload(output, token=token, folder_id=folder_id)
                     await status.reply_text(
