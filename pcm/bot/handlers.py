@@ -54,6 +54,7 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
     preferences = {"auto_quality": True, "delete_menu": True, "dump_enabled": False, "dump_channel": None, "destinations": ["telegram"], "gofile_token": "", "gofile_guest": False, "gofile_folder_id": ""}
     settings_loaded = False
     awaiting_dump_channel: set[int] = set()
+    awaiting_gofile_token: set[int] = set()
 
     async def ensure_settings_loaded() -> None:
         nonlocal settings_loaded
@@ -146,25 +147,40 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
             return
         await message.reply_text(f"✅ Default destination set to: {', '.join(mapping[target])}")
 
+    def panel_keyboard() -> InlineKeyboardMarkup:
+        destinations = preferences.get("destinations") or ["telegram"]
+        dest_label = "+".join(destinations).title()
+        token_set = not preferences.get("gofile_guest", False) and bool(
+            str(preferences.get("gofile_token") or os.getenv("GOFILE_TOKEN", "")).strip()
+        )
+        return InlineKeyboardMarkup([
+            [InlineKeyboardButton(f"🏆 Auto highest quality: {'ON' if preferences['auto_quality'] else 'OFF'}", callback_data="pcm_me:quality")],
+            [InlineKeyboardButton(f"🗑 Delete download menu: {'ON' if preferences['delete_menu'] else 'OFF'}", callback_data="pcm_me:delete")],
+            [InlineKeyboardButton(f"📦 Dump channel upload: {'ON' if preferences['dump_enabled'] else 'OFF'}", callback_data="pcm_me:dump"),
+             InlineKeyboardButton("Set dump channel", callback_data="pcm_me:setdump")],
+            [InlineKeyboardButton(f"📤 Destination: {dest_label}", callback_data="pcm_me:destinations")],
+            [InlineKeyboardButton(f"☁️ GoFile: {'Account token' if token_set else 'Guest mode'}", callback_data="pcm_me:gofile")],
+            [InlineKeyboardButton("📋 Jobs & controls", callback_data="pcm_me:jobs"),
+             InlineKeyboardButton("❔ Help", callback_data="pcm_me:help")],
+            [InlineKeyboardButton("🔄 Refresh", callback_data="pcm_me:refresh")],
+        ])
+
+    async def show_panel(message: Message, *, edit: bool = False) -> None:
+        text = "⚙️ <b>PCM Control Panel</b>\nChoose a setting or open a section below."
+        if edit:
+            await message.edit_text(text, reply_markup=panel_keyboard())
+        else:
+            await message.reply_text(text, reply_markup=panel_keyboard())
+
     @app.on_message(filters.command("me") & private_owner)
     async def me_handler(_: Client, message: Message) -> None:
         try:
             await ensure_settings_loaded()
+            await show_panel(message)
         except Exception as exc:
             await message.reply_text(f"❌ Could not load settings from database: {str(exc)[:300]}")
-            return
-        await message.reply_text(
-            "⚙️ <b>PCM Control Panel</b>\\nChoose a setting:",
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton(f"🏆 Auto highest quality: {'ON' if preferences['auto_quality'] else 'OFF'}", callback_data="pcm_me:quality")],
-                [InlineKeyboardButton(f"🗑 Delete menu on download: {'ON' if preferences['delete_menu'] else 'OFF'}", callback_data="pcm_me:delete")],
-                [InlineKeyboardButton(f"📦 Dump channel upload: {'ON' if preferences['dump_enabled'] else 'OFF'}", callback_data="pcm_me:dump")],
-                [InlineKeyboardButton("⚙️ Set dump channel", callback_data="pcm_me:setdump")],
-                [InlineKeyboardButton("🔄 Refresh", callback_data="pcm_me:refresh")],
-            ]),
-        )
 
-    @app.on_callback_query(filters.regex(r"^pcm_me:(quality|delete|dump|setdump|refresh)$") & owner)
+    @app.on_callback_query(filters.regex(r"^pcm_me:") & owner)
     async def me_settings_callback(_: Client, query) -> None:
         if not query.message:
             await query.answer()
@@ -183,24 +199,160 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
             preferences["dump_enabled"] = not preferences["dump_enabled"]
         elif action == "setdump":
             awaiting_dump_channel.add(query.from_user.id)
-            await query.answer("Send the channel @username or numeric ID in this chat.", show_alert=True)
+            await query.answer("Send the channel @username or numeric ID.", show_alert=True)
             await query.message.reply_text("📦 Send the dump channel @username or numeric ID. The bot must be an administrator there.")
             return
+        elif action == "destinations":
+            current = preferences.get("destinations") or ["telegram"]
+            await query.answer()
+            await query.message.edit_text(
+                f"📤 <b>Upload destination</b>\nCurrent: {', '.join(current)}",
+                reply_markup=InlineKeyboardMarkup([
+                    [InlineKeyboardButton(f"{'✅ ' if current == ['telegram'] else ''}Telegram only", callback_data="pcm_me:dest:telegram")],
+                    [InlineKeyboardButton(f"{'✅ ' if current == ['gofile'] else ''}GoFile only", callback_data="pcm_me:dest:gofile")],
+                    [InlineKeyboardButton(f"{'✅ ' if set(current) == {'telegram','gofile'} else ''}Both", callback_data="pcm_me:dest:both")],
+                    [InlineKeyboardButton("⬅️ Back", callback_data="pcm_me:home")],
+                ]),
+            )
+            return
+        elif action.startswith("dest:"):
+            target = action.split(":", 1)[1]
+            mapping = {"telegram": ["telegram"], "gofile": ["gofile"], "both": ["telegram", "gofile"]}
+            if target not in mapping:
+                await query.answer("Unknown destination.", show_alert=True)
+                return
+            preferences["destinations"] = mapping[target]
+        elif action == "gofile":
+            token_set = bool(str(preferences.get("gofile_token") or os.getenv("GOFILE_TOKEN", "")).strip()) and not preferences.get("gofile_guest", False)
+            mode = "account token configured" if token_set else "guest uploads"
+            await query.answer()
+            await query.message.edit_text(
+                f"☁️ <b>GoFile settings</b>\nMode: {mode}\n"
+                "Choose guest mode or securely configure an account token.",
+                reply_markup=InlineKeyboardMarkup([
+                    [InlineKeyboardButton("🔑 Set API key", callback_data="pcm_me:gofile:token")],
+                    [InlineKeyboardButton("👤 Use guest mode", callback_data="pcm_me:gofile:guest")],
+                    [InlineKeyboardButton("🧹 Clear saved key", callback_data="pcm_me:gofile:clear")],
+                    [InlineKeyboardButton("⬅️ Back", callback_data="pcm_me:home")],
+                ]),
+            )
+            return
+        elif action == "gofile:token":
+            awaiting_gofile_token.add(query.from_user.id)
+            await query.answer("Send your API key in this private chat. The message will be deleted.", show_alert=True)
+            await query.message.reply_text("🔑 Send your GoFile API key as your next message. I'll delete that message where possible and won't display the key.")
+            return
+        elif action in {"gofile:guest", "gofile:clear"}:
+            previous = (preferences.get("gofile_token", ""), preferences.get("gofile_guest", False))
+            preferences["gofile_token"] = ""
+            preferences["gofile_guest"] = True
+            try:
+                await persist_settings()
+            except Exception as exc:
+                preferences["gofile_token"], preferences["gofile_guest"] = previous
+                await query.answer(f"Could not save settings: {str(exc)[:160]}", show_alert=True)
+                return
+            await query.answer("Guest mode enabled.")
+            await query.message.edit_text("☁️ Guest uploads enabled. No GoFile account key will be used.", reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("⬅️ GoFile settings", callback_data="pcm_me:gofile")],
+                [InlineKeyboardButton("🏠 Main menu", callback_data="pcm_me:home")],
+            ]))
+            return
+        elif action == "jobs":
+            try:
+                rows = await jobs.list_jobs(owner_id, limit=8)
+            except Exception as exc:
+                await query.answer(f"Could not load jobs: {str(exc)[:150]}", show_alert=True)
+                return
+            buttons = []
+            for row in rows:
+                jid = int(row["id"])
+                status = str(row["status"])
+                buttons.append([InlineKeyboardButton(f"#{jid} · {status}", callback_data=f"pcm_me:job:{jid}")])
+            buttons.append([InlineKeyboardButton("🔄 Refresh jobs", callback_data="pcm_me:jobs")])
+            buttons.append([InlineKeyboardButton("⬅️ Back", callback_data="pcm_me:home")])
+            await query.answer()
+            await query.message.edit_text(
+                "📋 <b>Recent jobs</b>\nChoose a job to view controls." if rows else "📭 No saved jobs yet.",
+                reply_markup=InlineKeyboardMarkup(buttons),
+            )
+            return
+        elif action.startswith("job:"):
+            parts = action.split(":")
+            if len(parts) == 2 and parts[1].isdigit():
+                jid = int(parts[1])
+                try:
+                    row = await jobs.get_job(owner_id, jid)
+                except Exception as exc:
+                    await query.answer(f"Database error: {str(exc)[:150]}", show_alert=True)
+                    return
+                if not row:
+                    await query.answer("Job not found.", show_alert=True)
+                    return
+                status = str(row["status"])
+                buttons = []
+                if status in {"queued", "retrying"}:
+                    buttons.append([InlineKeyboardButton("⏸ Pause", callback_data=f"pcm_me:jobaction:pause:{jid}")])
+                if status == "paused":
+                    buttons.append([InlineKeyboardButton("▶️ Resume", callback_data=f"pcm_me:jobaction:resume:{jid}")])
+                if status in {"queued", "running", "paused", "retrying"}:
+                    buttons.append([InlineKeyboardButton("❌ Cancel", callback_data=f"pcm_me:jobaction:cancel:{jid}")])
+                if status in {"failed", "cancelled"}:
+                    buttons.append([InlineKeyboardButton("🔁 Retry", callback_data=f"pcm_me:jobaction:retry:{jid}")])
+                buttons.append([InlineKeyboardButton("⬅️ Jobs", callback_data="pcm_me:jobs")])
+                await query.answer()
+                await query.message.edit_text(
+                    f"📋 <b>Job #{jid}</b>\nStatus: <b>{status}</b>\n"
+                    f"Attempts: {row.get('attempts', '?')}/{row.get('max_attempts', '?')}\n"
+                    f"Destination(s): {row.get('destinations', ['telegram'])}\n"
+                    f"URL: {str(row.get('source_url', ''))[:350]}",
+                    reply_markup=InlineKeyboardMarkup(buttons),
+                )
+                return
+            if len(parts) == 4 and parts[1] == "jobaction" and parts[2] in {"pause", "resume", "cancel", "retry"} and parts[3].isdigit():
+                verb, jid = parts[2], int(parts[3])
+                try:
+                    row = await jobs.request_action(owner_id, jid, verb)
+                except Exception as exc:
+                    await query.answer(f"Action failed: {str(exc)[:150]}", show_alert=True)
+                    return
+                if not row:
+                    await query.answer("Job not found.", show_alert=True)
+                    return
+                await query.answer(f"Job #{jid}: {row['status']}")
+                await query.message.edit_text(
+                    f"✅ Job #{jid} updated: <b>{row['status']}</b>",
+                    reply_markup=InlineKeyboardMarkup([
+                        [InlineKeyboardButton("🔄 View job", callback_data=f"pcm_me:job:{jid}")],
+                        [InlineKeyboardButton("⬅️ Jobs", callback_data="pcm_me:jobs")],
+                    ]),
+                )
+                return
+        elif action == "help":
+            await query.answer()
+            await query.message.edit_text(
+                "❔ <b>PCM commands</b>\n"
+                "• Send a supported episode/series URL to start a job\n"
+                "• /ytdlp URL — download using yt-dlp\n"
+                "• /me — settings and job controls\n"
+                "• /jobs — recent jobs\n"
+                "• /dest — destination settings\n"
+                "• /gofile — GoFile account/guest mode\n"
+                "• /pause ID, /resume ID, /cancel ID, /retry ID — job controls",
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="pcm_me:home")]]),
+            )
+            return
+        elif action in {"home", "refresh"}:
+            pass
         try:
             await persist_settings()
         except Exception as exc:
             await query.answer(f"Could not save settings: {str(exc)[:180]}", show_alert=True)
             return
-        await query.answer("Settings updated." if action != "refresh" else "Settings refreshed.")
+        await query.answer("Settings updated.")
         await query.message.edit_text(
-            "⚙️ <b>PCM Control Panel</b>\\nChoose a setting:",
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton(f"🏆 Auto highest quality: {'ON' if preferences['auto_quality'] else 'OFF'}", callback_data="pcm_me:quality")],
-                [InlineKeyboardButton(f"🗑 Delete menu on download: {'ON' if preferences['delete_menu'] else 'OFF'}", callback_data="pcm_me:delete")],
-                [InlineKeyboardButton(f"📦 Dump channel upload: {'ON' if preferences['dump_enabled'] else 'OFF'}", callback_data="pcm_me:dump")],
-                [InlineKeyboardButton("⚙️ Set dump channel", callback_data="pcm_me:setdump")],
-                [InlineKeyboardButton("🔄 Refresh", callback_data="pcm_me:refresh")],
-            ]),
+            "⚙️ <b>PCM Control Panel</b>\nChoose a setting or open a section below.",
+            reply_markup=panel_keyboard(),
         )
 
     # Run after URL processing; a broad text handler in the same group would swallow URL messages.
