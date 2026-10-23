@@ -262,6 +262,7 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
                 "series_title": title,
                 "is_series": page_type == "series",
                 "provider": provider.name,
+                "source_url": parsed.normalized,
             }
             buttons = [InlineKeyboardButton(
                 "⬇ Download episode" if page_type == "episode" else "⬇ Choose single episode",
@@ -540,23 +541,23 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
             chat_id=query.message.chat.id,
             text=f"📚 Starting {len(episodes)} episode(s), one at a time…",
         )
-        succeeded = 0
-        failed = []
-        for index, episode in enumerate(episodes, 1):
-            await summary.edit_text(f"📚 Episode {index}/{len(episodes)}\n{episode['title'][:150]}\nPreparing…")
-            try:
-                await download_one(
-                    query.message.chat.id, summary, menu["provider"],
-                    episode["url"], episode["title"],
-                )
-                succeeded += 1
-            except Exception as exc:
-                failed.append(f"{episode['title'][:80]}: {str(exc)[:120]}")
-                await summary.edit_text(f"⚠️ Episode {index}/{len(episodes)} failed; continuing…")
-        text = f"🏁 Series download finished.\n✅ Completed: {succeeded}/{len(episodes)}"
-        if failed:
-            text += "\n\n❌ Failed:\n" + "\n".join(failed[:10])
-        await summary.edit_text(text)
+        try:
+            row = await jobs.enqueue(
+                owner_id, menu["source_url"], job_type="provider_series",
+                destinations=["telegram"],
+                options={
+                    "chat_id": query.message.chat.id,
+                    "provider": menu["provider"],
+                    "title": menu["series_title"],
+                },
+            )
+            await summary.edit_text(
+                f"📥 Queued series job <b>#{row['id']}</b>\n"
+                f"📚 Episodes: {len(episodes)}\n"
+                "Episodes will be downloaded sequentially. Use /jobs to track it."
+            )
+        except Exception as exc:
+            await summary.edit_text(f"❌ Could not queue series: {str(exc)[:400]}")
 
     @app.on_callback_query(filters.regex(r"^pcm_dl:") & owner)
     async def download_callback(_: Client, query) -> None:
@@ -590,20 +591,52 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
             choices.pop(token, None)
 
     async def process_persistent_job(job: dict) -> None:
-        """Execute a claimed job using the existing provider transfer path."""
-        if job.get("job_type") != "provider_episode":
-            raise ValueError(f"Unsupported queued job type: {job.get('job_type')}")
+        """Execute a claimed provider episode or series using existing transfer logic."""
         options = job.get("options") or {}
         if isinstance(options, str):
             import json
             options = json.loads(options)
         chat_id = int(options["chat_id"])
         provider_name = str(options["provider"])
-        episode_url = str(job["source_url"])
+        job_type = str(job.get("job_type"))
         title = str(options.get("title") or "Episode")
         status = await app.send_message(
             chat_id=chat_id, text=f"🧰 Job #{job['id']} started: {title[:120]}"
         )
-        await download_one(chat_id, status, provider_name, episode_url, title)
+        if job_type == "provider_episode":
+            await download_one(chat_id, status, provider_name, str(job["source_url"]), title)
+            return
+        if job_type == "provider_series":
+            provider = get_provider_by_name(provider_name)
+            if provider is None:
+                raise RuntimeError(f"Provider is not registered: {provider_name}")
+            episodes = await provider.discover_episodes(str(job["source_url"]))
+            if not episodes:
+                raise RuntimeError("No episodes found for this series.")
+            succeeded = 0
+            failures: list[str] = []
+            for index, episode in enumerate(episodes, 1):
+                await status.edit_text(
+                    f"📚 Job #{job['id']} · Episode {index}/{len(episodes)}\n"
+                    f"{str(episode.get('title') or 'Episode')[:120]}\nPreparing…"
+                )
+                try:
+                    await download_one(
+                        chat_id, status, provider_name, str(episode["url"]),
+                        str(episode.get("title") or f"Episode {index}"),
+                    )
+                    succeeded += 1
+                except asyncio.CancelledError:
+                    raise
+                except Exception as exc:
+                    failures.append(f"{str(episode.get('title') or index)[:70]}: {str(exc)[:100]}")
+            if failures:
+                raise RuntimeError(
+                    f"Series finished with {succeeded}/{len(episodes)} successful episodes. "
+                    + "; ".join(failures[:8])
+                )
+            await status.edit_text(f"✅ Series job #{job['id']} complete: {succeeded}/{len(episodes)} episodes.")
+            return
+        raise ValueError(f"Unsupported queued job type: {job_type}")
 
     return process_persistent_job
