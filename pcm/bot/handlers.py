@@ -379,6 +379,7 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
         candidate = urls[0].rstrip(".,;!?)")
         logger.info("Processing URL host/path only: %s", candidate.split("?", 1)[0][:180])
         try:
+            await ensure_settings_loaded()
             parsed = parse_url(candidate)
         except URLValidationError as exc:
             await message.reply_text(f"❌ URL rejected: {exc}")
@@ -403,8 +404,11 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
                 )
                 row = await jobs.enqueue(
                     owner_id, parsed.normalized, job_type="provider_episode",
-                    destinations=["telegram"],
-                    options={"chat_id": message.chat.id, "provider": provider.name, "title": title},
+                    destinations=list(preferences.get("destinations") or ["telegram"]),
+                    options={
+                        "chat_id": message.chat.id, "provider": provider.name, "title": title,
+                        "destinations": list(preferences.get("destinations") or ["telegram"]),
+                    },
                 )
                 await status.edit_text(
                     f"📥 Queued job <b>#{row['id']}</b>\n{title[:140]}\n"
@@ -489,6 +493,7 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
         episode_url: str,
         title: str,
         requested_label: str | None = None,
+        destinations: list[str] | None = None,
     ) -> None:
         output: Path | None = None
         thumbnail: Path | None = None
@@ -497,6 +502,9 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
             if provider is None:
                 raise RuntimeError(f"Provider is not registered: {provider_name}")
             result = await provider.resolve(episode_url)
+            targets = list(destinations or preferences.get("destinations") or ["telegram"])
+            if not targets or any(target not in {"telegram", "gofile"} for target in targets):
+                raise ValueError("Invalid upload destination settings.")
             sources = result["sources"]
             source = None
             if requested_label:
@@ -536,7 +544,7 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
             await status.edit_text(
                 f"✅ Download complete: <b>{title[:100]}</b>\n"
                 f"📦 Size: <b>{file_size / 1048576:.2f} MiB</b>\n"
-                "📤 Preparing Telegram upload…"
+                f"📤 Preparing upload to: {', '.join(targets)}…"
             )
             metadata = await prepare_video_metadata(output)
             thumbnail = metadata.thumbnail
@@ -545,49 +553,66 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
                     f"⚠️ Could not read complete video metadata for <b>{title[:100]}</b>. "
                     "Uploading with available metadata…"
                 )
-            upload_meter = TransferProgress(
-                title, "📤 Uploading", quality=source["label"]
-            )
+            completed: list[str] = []
+            failures: list[str] = []
+            if "telegram" in targets:
+                upload_meter = TransferProgress(
+                    title, "📤 Telegram uploading", quality=source["label"]
+                )
 
-            async def upload_progress(current: int, total: int, *_) -> None:
-                text = upload_meter.render(current, total)
-                if text:
-                    try:
-                        await status.edit_text(text)
-                    except Exception:
-                        # Pyrogram can invoke this callback frequently; keep edits best-effort.
-                        pass
+                async def upload_progress(current: int, total: int, *_) -> None:
+                    text = upload_meter.render(current, total)
+                    if text:
+                        try:
+                            await status.edit_text(text)
+                        except Exception:
+                            pass
 
-            await app.send_video(
-                chat_id=chat_id, video=str(output),
-                caption=f"🎬 <b>{title[:900]}</b>\n🎥 Quality: <b>{source['label']}</b>",
-                supports_streaming=True,
-                duration=metadata.duration,
-                width=metadata.width,
-                height=metadata.height,
-                thumb=str(thumbnail) if thumbnail else None,
-                progress=upload_progress,
-            )
-            if preferences["dump_enabled"]:
-                if not preferences.get("dump_channel"):
-                    await status.edit_text("⚠️ Video sent to chat, but dump upload is enabled and no dump channel is configured. Set it in /me.")
-                else:
-                    try:
+                try:
+                    await app.send_video(
+                        chat_id=chat_id, video=str(output),
+                        caption=f"🎬 <b>{title[:900]}</b>\n🎥 Quality: <b>{source['label']}</b>",
+                        supports_streaming=True,
+                        duration=metadata.duration,
+                        width=metadata.width,
+                        height=metadata.height,
+                        thumb=str(thumbnail) if thumbnail else None,
+                        progress=upload_progress,
+                    )
+                    completed.append("Telegram")
+                    if preferences["dump_enabled"] and preferences.get("dump_channel"):
                         await app.send_video(
-                            chat_id=int(preferences["dump_channel"]),
-                            video=str(output),
-                            caption=f"🎬 <b>{title[:900]}</b>\\n🎥 Quality: <b>{source['label']}</b>",
+                            chat_id=int(preferences["dump_channel"]), video=str(output),
+                            caption=f"🎬 <b>{title[:900]}</b>\n🎥 Quality: <b>{source['label']}</b>",
                             supports_streaming=True,
-                            duration=metadata.duration,
-                            width=metadata.width,
-                            height=metadata.height,
+                            duration=metadata.duration, width=metadata.width, height=metadata.height,
                             thumb=str(thumbnail) if thumbnail else None,
                         )
-                        await status.edit_text(f"✅ Completed and copied to dump channel: {title[:130]}")
-                    except Exception as exc:
-                        await status.edit_text(f"⚠️ Sent to chat, but dump channel upload failed: {str(exc)[:350]}")
+                except Exception as exc:
+                    failures.append(f"Telegram: {str(exc)[:180]}")
+
+            if "gofile" in targets:
+                try:
+                    await status.edit_text(f"☁️ Uploading to GoFile: {title[:100]}…")
+                    token = str(preferences.get("gofile_token") or "").strip() or None
+                    folder_id = str(preferences.get("gofile_folder_id") or "").strip() or None
+                    result = await gofile_upload(output, token=token, folder_id=folder_id)
+                    await status.reply_text(
+                        f"☁️ <b>GoFile upload complete</b>\n"
+                        f"📄 {result['name'][:180]}\n"
+                        f"🔗 {result['url']}"
+                    )
+                    completed.append("GoFile")
+                except Exception as exc:
+                    failures.append(f"GoFile: {str(exc)[:220]}")
+
+            if completed:
+                await status.edit_text(
+                    f"✅ Completed: {', '.join(completed)}\n"
+                    + (f"⚠️ Failed: {'; '.join(failures)}" if failures else f"🎬 {title[:150]}")
+                )
             else:
-                await status.edit_text(f"✅ Completed: {title[:150]}")
+                raise RuntimeError("All upload destinations failed: " + "; ".join(failures))
         finally:
             if output:
                 output.unlink(missing_ok=True)
@@ -604,7 +629,8 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
         if not menu:
             await query.answer("Episode list expired. Send the URL again.", show_alert=True)
             return
-        await query.answer("Starting sequential downloads…")
+        await query.answer("Queueing series…")
+        await ensure_settings_loaded()
         episodes = menu["episodes"]
         # Remove the inline-button menu once the user starts the series download.
         if preferences["delete_menu"]:
@@ -619,11 +645,12 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
         try:
             row = await jobs.enqueue(
                 owner_id, menu["source_url"], job_type="provider_series",
-                destinations=["telegram"],
+                destinations=list(preferences.get("destinations") or ["telegram"]),
                 options={
                     "chat_id": query.message.chat.id,
                     "provider": menu["provider"],
                     "title": menu["series_title"],
+                    "destinations": list(preferences.get("destinations") or ["telegram"]),
                 },
             )
             await summary.edit_text(
@@ -671,15 +698,20 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
         if isinstance(options, str):
             import json
             options = json.loads(options)
+        await ensure_settings_loaded()
         chat_id = int(options["chat_id"])
         provider_name = str(options["provider"])
+        destinations = options.get("destinations") or job.get("destinations") or preferences.get("destinations") or ["telegram"]
+        if isinstance(destinations, str):
+            import json
+            destinations = json.loads(destinations)
         job_type = str(job.get("job_type"))
         title = str(options.get("title") or "Episode")
         status = await app.send_message(
             chat_id=chat_id, text=f"🧰 Job #{job['id']} started: {title[:120]}"
         )
         if job_type == "provider_episode":
-            await download_one(chat_id, status, provider_name, str(job["source_url"]), title)
+            await download_one(chat_id, status, provider_name, str(job["source_url"]), title, destinations=list(destinations))
             return
         if job_type == "provider_series":
             provider = get_provider_by_name(provider_name)
@@ -699,6 +731,7 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
                     await download_one(
                         chat_id, status, provider_name, str(episode["url"]),
                         str(episode.get("title") or f"Episode {index}"),
+                        destinations=list(destinations),
                     )
                     succeeded += 1
                 except asyncio.CancelledError:
