@@ -4,8 +4,8 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
-import socket
 import secrets
+import socket
 from collections.abc import Awaitable, Callable
 from typing import Any
 
