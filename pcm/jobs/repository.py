@@ -8,7 +8,6 @@ from __future__ import annotations
 import json
 import os
 from typing import Any
-from uuid import UUID
 
 import asyncpg
 
@@ -173,7 +172,7 @@ class JobRepository:
                 row = await conn.fetchrow(
                     """SELECT id FROM pcm_jobs
                        WHERE status IN ('queued','retrying') AND cancel_requested=FALSE
-                       ORDER BY created_at ASC FOR UPDATE SKIP LOCKED LIMIT 1"""
+                       ORDER BY created_at ASC LIMIT 1 FOR UPDATE SKIP LOCKED"""
                 )
                 if row is None:
                     return None
