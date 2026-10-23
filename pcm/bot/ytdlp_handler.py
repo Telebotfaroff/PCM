@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import re
 import secrets
 import shutil
@@ -13,9 +14,11 @@ from pyrogram import Client, filters
 from pyrogram.types import Message
 
 from pcm.bot.access import owner_filter
+from pcm.bot.persistent_settings import load_preferences
 from pcm.core.config import Settings
 from pcm.resolver.url_model import URLValidationError, parse_url
 from pcm.transfers.downloader import _assert_public_host
+from pcm.transfers.gofile import upload_file as gofile_upload
 
 # Leave headroom below Telegram's approximate 2 GB bot upload limit.
 _PART_LIMIT_BYTES = 1750 * 1024 * 1024
@@ -108,6 +111,18 @@ def register_ytdlp_handler(app: Client, owner_id: int) -> None:
             return
 
         settings = Settings.from_env(require_secrets=False)
+        try:
+            preferences = await load_preferences(owner_id)
+        except Exception as exc:
+            await message.reply_text(f"❌ Could not load destination settings: {str(exc)[:250]}")
+            return
+        destinations = preferences.get("destinations") or ["telegram"]
+        if isinstance(destinations, str):
+            import json
+            destinations = json.loads(destinations)
+        if not destinations or any(item not in {"telegram", "gofile"} for item in destinations):
+            await message.reply_text("❌ Invalid upload destination settings. Use /dest telegram, /dest gofile, or /dest both.")
+            return
         settings.temp_dir.mkdir(parents=True, exist_ok=True)
         marker = secrets.token_hex(5)
         output_template = str(settings.temp_dir / f"ytdlp-{marker}-%(title).80B-%(id)s.%(ext)s")
@@ -182,47 +197,59 @@ def register_ytdlp_handler(app: Client, owner_id: int) -> None:
             size = output_path.stat().st_size
             if size <= 0:
                 raise RuntimeError("yt-dlp created an empty file.")
-            if size > _PART_LIMIT_BYTES:
+            if "telegram" in destinations and size > _PART_LIMIT_BYTES:
                 upload_paths = await _split_video(output_path, split_dir, status)
             else:
                 upload_paths = [output_path]
 
             total_parts = len(upload_paths)
-            for part_index, upload_path in enumerate(upload_paths, start=1):
-                part_size = upload_path.stat().st_size
-                label = f"Part {part_index}/{total_parts}\n" if total_parts > 1 else ""
-                await status.edit_text(
-                    f"📤 **Telegram upload**\n{label}Progress: 0%\n"
-                    f"Uploaded: 0 B / {_human_size(part_size)}"
-                )
-
-                async def upload_progress(current: int, total: int, *_args) -> None:
-                    nonlocal last_upload_update
-                    now = time.monotonic()
-                    if current < total and now - last_upload_update < 2.5:
-                        return
-                    last_upload_update = now
-                    percent = (current / total * 100) if total else 0
-                    text = (
-                        f"📤 **Telegram upload**\n{label}Progress: {percent:.1f}%\n"
-                        f"Uploaded: {_human_size(current)} / {_human_size(total)}"
+            if "telegram" in destinations:
+                for part_index, upload_path in enumerate(upload_paths, start=1):
+                    part_size = upload_path.stat().st_size
+                    label = f"Part {part_index}/{total_parts}\n" if total_parts > 1 else ""
+                    await status.edit_text(
+                        f"📤 **Telegram upload**\n{label}Progress: 0%\n"
+                        f"Uploaded: 0 B / {_human_size(part_size)}"
                     )
-                    try:
-                        await status.edit_text(text)
-                    except Exception:
-                        pass
 
-                await app.send_video(
-                    chat_id=message.chat.id,
-                    video=str(upload_path),
-                    caption=(f"Downloaded with yt-dlp\n{label}{upload_path.name[:850]}"),
-                    supports_streaming=True,
-                    progress=upload_progress,
-                )
-            await status.edit_text(
-                f"✅ Download and Telegram upload completed.\n"
-                f"Parts uploaded: {total_parts}"
-            )
+                    async def upload_progress(current: int, total: int, *_args) -> None:
+                        nonlocal last_upload_update
+                        now = time.monotonic()
+                        if current < total and now - last_upload_update < 2.5:
+                            return
+                        last_upload_update = now
+                        percent = (current / total * 100) if total else 0
+                        text = (
+                            f"📤 **Telegram upload**\n{label}Progress: {percent:.1f}%\n"
+                            f"Uploaded: {_human_size(current)} / {_human_size(total)}"
+                        )
+                        try:
+                            await status.edit_text(text)
+                        except Exception:
+                            pass
+
+                    await app.send_video(
+                        chat_id=message.chat.id,
+                        video=str(upload_path),
+                        caption=(f"Downloaded with yt-dlp\n{label}{upload_path.name[:850]}"),
+                        supports_streaming=True,
+                        progress=upload_progress,
+                    )
+            gofile_links: list[str] = []
+            if "gofile" in destinations:
+                token = str(preferences.get("gofile_token") or os.getenv("GOFILE_TOKEN", "")).strip() or None
+                for part_index, upload_path in enumerate(upload_paths, start=1):
+                    await status.edit_text(
+                        f"☁️ **GoFile upload**\nPart {part_index}/{len(upload_paths)}"
+                    )
+                    result = await gofile_upload(upload_path, token=token)
+                    gofile_links.append(result["url"])
+            summary = []
+            if "telegram" in destinations:
+                summary.append(f"Telegram: {total_parts} part(s) uploaded")
+            if gofile_links:
+                summary.append("GoFile links:\n" + "\n".join(gofile_links))
+            await status.edit_text("✅ yt-dlp finished.\n" + "\n".join(summary))
         except Exception as exc:
             if process is not None and process.returncode is None:
                 process.kill()
