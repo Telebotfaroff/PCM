@@ -17,8 +17,8 @@ async def test_discover_episodes_includes_current_and_series_links(monkeypatch):
     series_html = """
     <html><body>
       <a class="tv-ep-card-link" href="/videos/show-episode-1/" title="Episode 1">Episode 1</a>
-      <a href="/videos/show-episode-2/">Episode 2</a>
-      <a href="/videos/show-episode-3/">Episode 3</a>
+      <a class="tv-ep-card-link" href="/videos/show-episode-2/" title="Episode 2">Episode 2</a>
+      <a class="tv-ep-card-link" href="/videos/show-episode-3/" title="Episode 3">Episode 3</a>
     </body></html>
     """
 
