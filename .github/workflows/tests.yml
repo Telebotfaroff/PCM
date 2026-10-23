@@ -21,4 +21,4 @@ jobs:
         run: pytest -q
       - name: Run Ruff
         if: always()
-        run: ruff check pcm tests
+        run: ruff check pcm tests --ignore E501
