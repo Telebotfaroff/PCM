@@ -1,16 +1,13 @@
 """GoFile v2 uploader supporting guest and account-token uploads."""
 from __future__ import annotations
 
-import json
 import mimetypes
-import os
 from pathlib import Path
 from typing import Any
 
 import httpx
 
 _API = "https://api.gofile.io"
-_UPLOAD = "https://upload.gofile.io"
 
 
 class GoFileError(RuntimeError):
