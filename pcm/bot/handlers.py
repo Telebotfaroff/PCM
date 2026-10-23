@@ -631,11 +631,12 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
                 except Exception as exc:
                     failures.append(f"{str(episode.get('title') or index)[:70]}: {str(exc)[:100]}")
             if failures:
-                raise RuntimeError(
-                    f"Series finished with {succeeded}/{len(episodes)} successful episodes. "
-                    + "; ".join(failures[:8])
+                await status.edit_text(
+                    f"⚠️ Series job #{job['id']} finished with {succeeded}/{len(episodes)} successful episodes.\n"
+                    + "\n".join(failures[:8])
                 )
-            await status.edit_text(f"✅ Series job #{job['id']} complete: {succeeded}/{len(episodes)} episodes.")
+            else:
+                await status.edit_text(f"✅ Series job #{job['id']} complete: {succeeded}/{len(episodes)} episodes.")
             return
         raise ValueError(f"Unsupported queued job type: {job_type}")
 
