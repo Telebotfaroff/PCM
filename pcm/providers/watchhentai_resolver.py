@@ -10,8 +10,8 @@ from urllib.parse import urljoin, urlsplit
 
 import httpx
 
-from pcm.resolver.url_model import URLValidationError, parse_url
 from pcm.providers.watchhentai import parse_html
+from pcm.resolver.url_model import URLValidationError, parse_url
 
 
 class ProviderResolveError(RuntimeError):
