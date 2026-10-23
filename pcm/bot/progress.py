@@ -5,7 +5,6 @@ import time
 
 
 
-
 def format_bytes(value: int) -> str:
     """Format byte counts with human-readable binary units."""
     amount = max(0, float(value))
