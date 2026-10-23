@@ -1,4 +1,4 @@
-"""Owner-only /ytdlp command using yt-dlp for supported video sites."""
+"""Owner-only /ytdlp command using yt-dlp with download/upload progress."""
 from __future__ import annotations
 
 import asyncio
@@ -17,7 +17,18 @@ from pcm.resolver.url_model import URLValidationError, parse_url
 from pcm.transfers.downloader import _assert_public_host
 
 _MAX_UPLOAD_BYTES = 1900 * 1024 * 1024
-_PROGRESS = re.compile(r"\[download\]\s+(\d+(?:\.\d+)?)%.*?(?:at\s+(.+?))?(?:\s+ETA\s+(.+))?$")
+_PERCENT = re.compile(r"\[download\]\s+(\d+(?:\.\d+)?)%")
+_SPEED = re.compile(r"\bat\s+(.+?)(?=\s+ETA\s+|$)")
+_ETA = re.compile(r"\bETA\s+(.+)$")
+
+
+def _human_size(value: int) -> str:
+    size = float(value)
+    for unit in ("B", "KB", "MB", "GB", "TB"):
+        if size < 1024 or unit == "TB":
+            return f"{size:.1f} {unit}"
+        size /= 1024
+    return f"{size:.1f} TB"
 
 
 def register_ytdlp_handler(app: Client, owner_id: int) -> None:
@@ -49,12 +60,15 @@ def register_ytdlp_handler(app: Client, owner_id: int) -> None:
         status = await message.reply_text("🔎 Starting yt-dlp…")
         process = None
         output_path: Path | None = None
-        last_update = 0.0
+        last_download_update = 0.0
+        last_upload_update = 0.0
+
         try:
             process = await asyncio.create_subprocess_exec(
                 sys.executable, "-m", "yt_dlp",
                 "--ignore-config", "--no-playlist", "--no-warnings", "--newline",
-                "--restrict-filenames", "--max-filesize", f"{min(settings.max_file_size_mb, 1900)}M",
+                "--progress", "--restrict-filenames", "--max-filesize",
+                f"{min(settings.max_file_size_mb, 1900)}M",
                 "-f", "best[ext=mp4]/best",
                 "-o", output_template,
                 "--print", "after_move:filepath",
@@ -76,16 +90,22 @@ def register_ytdlp_handler(app: Client, owner_id: int) -> None:
                 if not line:
                     continue
                 if line.startswith("[download]"):
-                    match = _PROGRESS.search(line)
-                    now = time.monotonic()
-                    if match and now - last_update >= 4:
-                        last_update = now
-                        percent, speed, eta = match.groups()
-                        detail = f"\nSpeed: {speed.strip()}" if speed else ""
-                        detail += f"\nETA: {eta.strip()}" if eta else ""
-                        await status.edit_text(
-                            f"📥 yt-dlp downloading: {percent}%{detail}"
-                        )
+                    percent_match = _PERCENT.search(line)
+                    if percent_match:
+                        now = time.monotonic()
+                        if now - last_download_update >= 3 or percent_match.group(1) == "100":
+                            last_download_update = now
+                            speed_match = _SPEED.search(line)
+                            eta_match = _ETA.search(line)
+                            detail = f"\nSpeed: {speed_match.group(1).strip()}" if speed_match else ""
+                            detail += f"\nETA: {eta_match.group(1).strip()}" if eta_match else ""
+                            try:
+                                await status.edit_text(
+                                    f"📥 **yt-dlp download**\n"
+                                    f"Progress: {percent_match.group(1)}%{detail}"
+                                )
+                            except Exception:
+                                pass
                 elif line.startswith(str(settings.temp_dir)):
                     candidate = Path(line)
                     if candidate.exists() and candidate.is_file():
@@ -98,30 +118,55 @@ def register_ytdlp_handler(app: Client, owner_id: int) -> None:
                     "or require cookies/login."
                 )
             if output_path is None or not output_path.exists():
-                candidates = list(settings.temp_dir.glob(f"ytdlp-{marker}-*"))
-                candidates = [path for path in candidates if path.is_file()]
+                candidates = [p for p in settings.temp_dir.glob(f"ytdlp-{marker}-*") if p.is_file()]
                 if len(candidates) == 1:
                     output_path = candidates[0]
             if output_path is None or not output_path.exists():
                 raise RuntimeError("yt-dlp finished but no output video was found.")
+
             size = output_path.stat().st_size
             if size <= 0:
                 raise RuntimeError("yt-dlp created an empty file.")
             if size > _MAX_UPLOAD_BYTES:
                 raise RuntimeError("Video exceeds the bot upload limit (about 1.9 GiB).")
-            await status.edit_text("📤 Uploading video to your private chat…")
+
+            await status.edit_text(
+                f"📤 **Telegram upload**\nProgress: 0%\n"
+                f"Uploaded: 0 B / {_human_size(size)}"
+            )
+
+            async def upload_progress(current: int, total: int, *_args) -> None:
+                nonlocal last_upload_update
+                now = time.monotonic()
+                if current < total and now - last_upload_update < 2.5:
+                    return
+                last_upload_update = now
+                percent = (current / total * 100) if total else 0
+                text = (
+                    f"📤 **Telegram upload**\nProgress: {percent:.1f}%\n"
+                    f"Uploaded: {_human_size(current)} / {_human_size(total)}"
+                )
+                try:
+                    await status.edit_text(text)
+                except Exception:
+                    pass
+
             await app.send_video(
                 chat_id=message.chat.id,
                 video=str(output_path),
                 caption=f"Downloaded with yt-dlp\n{output_path.name[:900]}",
                 supports_streaming=True,
+                progress=upload_progress,
             )
-            await status.edit_text("✅ yt-dlp download and Telegram upload completed.")
+            await status.edit_text("✅ Download and Telegram upload completed.")
         except Exception as exc:
             if process is not None and process.returncode is None:
                 process.kill()
                 await process.wait()
-            await status.edit_text(f"❌ yt-dlp failed: {str(exc)[:650]}")
+            try:
+                await status.edit_text(f"❌ yt-dlp failed: {str(exc)[:650]}")
+            except Exception:
+                pass
         finally:
             if output_path:
                 output_path.unlink(missing_ok=True)
