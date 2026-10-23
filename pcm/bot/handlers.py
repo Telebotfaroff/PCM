@@ -51,7 +51,7 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
     private_owner = filters.private & owner
     choices: dict[str, dict] = {}
     menus: dict[str, dict] = {}
-    preferences = {"auto_quality": True, "delete_menu": True, "dump_enabled": False, "dump_channel": None, "destinations": ["telegram"], "gofile_token": "", "gofile_guest": false, "gofile_folder_id": ""}
+    preferences = {"auto_quality": True, "delete_menu": True, "dump_enabled": False, "dump_channel": None, "destinations": ["telegram"], "gofile_token": "", "gofile_guest": False, "gofile_folder_id": ""}
     settings_loaded = False
     awaiting_dump_channel: set[int] = set()
 
