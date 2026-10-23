@@ -163,7 +163,20 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
         ])
 
     async def show_panel(message: Message, *, edit: bool = False) -> None:
-        text = "⚙️ <b>PCM Control Panel</b>\nChoose a setting or open a section below."
+        destinations = ", ".join((preferences.get("destinations") or ["telegram"]))
+        token_set = not preferences.get("gofile_guest", False) and bool(
+            str(preferences.get("gofile_token") or os.getenv("GOFILE_TOKEN", "")).strip()
+        )
+        text = (
+            "⚙️ <b>PCM Control Panel</b>\n"
+            "━━━━━━━━━━━━━━━━━━\n"
+            f"📤 <b>Destination:</b> {destinations.title()}\n"
+            f"☁️ <b>GoFile:</b> {'Account key' if token_set else 'Guest mode'}\n"
+            f"📦 <b>Dump uploads:</b> {'Enabled' if preferences['dump_enabled'] else 'Disabled'}\n"
+            f"🎯 <b>Dump channel:</b> {'Configured' if preferences.get('dump_channel') else 'Not set'}\n"
+            "━━━━━━━━━━━━━━━━━━\n"
+            "Tap a button to change a setting or manage jobs."
+        )
         if edit:
             await message.edit_text(text, reply_markup=panel_keyboard())
         else:
