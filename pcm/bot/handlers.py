@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import re
 import secrets
+from collections.abc import Awaitable, Callable
 from pathlib import Path
 
 from pyrogram import Client, filters
@@ -23,7 +24,7 @@ _URL_PATTERN = re.compile(r"https?://[^\s<>]+", re.IGNORECASE)
 _MAX_TELEGRAM_BYTES = 2 * 1024 * 1024 * 1024
 
 
-def register_handlers(app: Client, owner_id: int):
+def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[None]]:
     """Register private owner-only commands and media selection callbacks."""
     register_ytdlp_handler(app, owner_id)
     jobs = JobRepository()
