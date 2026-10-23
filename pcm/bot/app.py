@@ -9,6 +9,8 @@ from pyrogram import Client
 
 from pcm.bot.handlers import register_handlers
 from pcm.core.config import Settings
+from pcm.jobs.repository import JobRepository
+from pcm.jobs.worker import run_worker
 
 logger = logging.getLogger("pcm")
 
@@ -26,7 +28,7 @@ async def run_bot() -> None:
         bot_token=settings.telegram_bot_token,
         workdir=str(settings.temp_dir),
     )
-    register_handlers(app, settings.telegram_owner_id)
+    processor = register_handlers(app, settings.telegram_owner_id)
     logger.info("Starting Pyrogram client")
     await app.start()
     me = await app.get_me()
@@ -35,9 +37,15 @@ async def run_bot() -> None:
         me.username or "unknown",
         me.id,
     )
+    worker_task = asyncio.create_task(run_worker(JobRepository(), processor), name="pcm-job-worker")
     try:
         await asyncio.Event().wait()
     finally:
+        worker_task.cancel()
+        try:
+            await worker_task
+        except asyncio.CancelledError:
+            pass
         logger.info("Stopping Pyrogram client")
         await app.stop()
 
