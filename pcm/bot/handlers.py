@@ -234,21 +234,27 @@ def register_handlers(app: Client, owner_id: int) -> None:
         except Exception as exc:
             await status.edit_text(f"❌ Could not process URL: {str(exc)[:700]}")
 
-    @app.on_message(filters.text & private_owner, group=1)
+    @app.on_message((filters.text | filters.caption) & private_owner, group=1)
     async def url_handler(_: Client, message: Message) -> None:
-        text = message.text or ""
+        import logging
+        logger = logging.getLogger("pcm.telegram.url")
+        text = message.text or message.caption or ""
         if text.startswith("/"):
             return
         urls = _URL_PATTERN.findall(text)
+        logger.info("URL handler received message: text_length=%s url_count=%s", len(text), len(urls))
         if not urls:
             return
         candidate = urls[0].rstrip(".,;!?)")
+        logger.info("Processing URL host/path only: %s", candidate.split("?", 1)[0][:180])
         try:
             parsed = parse_url(candidate)
         except URLValidationError as exc:
             await message.reply_text(f"❌ URL rejected: {exc}")
             return
         provider = get_provider(parsed.normalized)
+        page_type = provider.classify_url(parsed.normalized) if provider else None
+        logger.info("URL classified: host=%s provider=%s page_type=%s", parsed.hostname, provider.name if provider else None, page_type)
         if provider and provider.classify_url(parsed.normalized) == "episode":
             if not preferences["auto_quality"]:
                 await resolve_episode(message, candidate)
