@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="en" class="site-root">
+
+<head>
+        <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#f5f7fb" media="(prefers-color-scheme: light)" data-front-theme-color="light">
+    <meta name="theme-color" content="#0d1117" media="(prefers-color-scheme: dark)" data-front-theme-color="dark">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <script>
+(function() {
+    var root = document.documentElement;
+    var storageKey = 'frontTheme';
+    var selectedTheme = '';
+    var systemTheme = window.matchMedia ? window.matchMedia('(prefers-color-scheme: light)') : null;
+
+    function preference() {
+        // Keep an explicit choice for this page even when browser storage is blocked.
+        if (selectedTheme) return selectedTheme;
+        try {
+            var stored = window.localStorage.getItem(storageKey);
+            if (stored === 'light' || stored === 'dark' || stored === 'system') return stored;
+        } catch (error) { /* The cookie can still hold a saved preference. */ }
+        try {
+            var cookie = document.cookie.match(/(?:^|;\s*)frontTheme=(light|dark|system)(?:;|$)/);
+            if (cookie) return cookie[1];
+        } catch (error) { /* Embedded players may have no storage access. */ }
+        return 'system';
+    }
+
+    function resolve() {
+        var mode = preference();
+        return mode === 'system' ? (systemTheme && systemTheme.matches ? 'light' : 'dark') : mode;
+    }
+
+    function apply(theme) {
+        var next = theme === 'light' ? 'light' : 'dark';
+        root.setAttribute('data-front-theme', next);
+        if (document.body) {
+            document.body.setAttribute('data-front-theme', next);
+            document.body.setAttribute('use-theme', next);
+        }
+        document.querySelectorAll('meta[name="theme-color"][data-front-theme-color]').forEach(function(meta) {
+            meta.setAttribute('media', meta.getAttribute('data-front-theme-color') === next ? 'all' : 'not all');
+        });
+        var statusBar = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+        if (statusBar) statusBar.setAttribute('content', next === 'light' ? 'default' : 'black');
+        document.dispatchEvent(new CustomEvent('front:theme-change', { detail: { theme: next, preference: preference() } }));
+    }
+
+    window.FrontTheme = {
+        get: resolve,
+        getPreference: preference,
+        set: function(theme, persist) {
+            var next = theme === 'system' ? 'system' : theme === 'light' ? 'light' : 'dark';
+            if (persist) {
+                selectedTheme = next;
+                try { window.localStorage.setItem(storageKey, next); } catch (error) { /* Cookie fallback below. */ }
+                try {
+                    document.cookie = storageKey + '=' + next + '; path=/; max-age=31536000; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : '');
+                } catch (error) { /* The choice still applies to this page. */ }
+            }
+            apply(next === 'system' ? (systemTheme && systemTheme.matches ? 'light' : 'dark') : next);
+        }
+    };
+
+    // Siteadmin error pages keep their separate admin theme preference.
+    if (root.hasAttribute('data-admin-error-theme')) return;
+
+    // Resolve before styles load, without saving the automatic system choice.
+    apply(resolve());
+    document.addEventListener('DOMContentLoaded', function() { apply(resolve()); });
+    function systemChanged() {
+        if (preference() === 'system') apply(resolve());
+    }
+    if (systemTheme) {
+        if (systemTheme.addEventListener) systemTheme.addEventListener('change', systemChanged);
+        else if (systemTheme.addListener) systemTheme.addListener(systemChanged);
+    }
+})();
+</script>
+    <script>
+        (function() {
+            try {
+                var visitorTimezone = window.Intl && Intl.DateTimeFormat
+                    ? Intl.DateTimeFormat().resolvedOptions().timeZone
+                    : '';
+                if (visitorTimezone && (visitorTimezone === 'UTC' || /^[A-Za-z_]+\/[A-Za-z0-9_+\-\/]+$/.test(visitorTimezone))) {
+                    var timezoneCookie = document.cookie ? document.cookie.match(/(?:^|; )front_timezone=([^;]*)(?:;|$)/) : null;
+                    var currentTimezone = timezoneCookie ? decodeURIComponent(timezoneCookie[1]) : '';
+                    window.frontVisitorTimezone = visitorTimezone;
+                    document.documentElement.setAttribute('data-front-timezone', visitorTimezone);
+                    if (currentTimezone !== visitorTimezone) {
+                        document.cookie = 'front_timezone=' + encodeURIComponent(visitorTimezone) + '; path=/; max-age=31536000; SameSite=Lax' + (window.location.protocol === 'https:' ? '; Secure' : '');
+                    }
+                }
+            } catch (error) {
+                window.frontVisitorTimezone = '';
+            }
+        })();
+    </script>
+            <title>HUNTC-676 30 Seconds After Getting Home, It&#039;s &quot;Welcome Home&quot; Follow... | Javtiful</title>
+    <meta name="description" content="Watch HUNTC-676 30 Seconds After Getting Home, It&#039;s &quot;Welcome Home&quot; Followed By Immediate Penetration! My House Has Become A Hangout For Troubled Female Stude...">
+            <meta name="keywords" content="creampie, blowjob, cowgirl, school uniform">
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <link rel="canonical" href="https://javtiful.com/video/114939/huntc-676">
+            <link rel="alternate" hreflang="en" href="https://javtiful.com/video/114939/huntc-676?utm_source=chatgpt.com">
+            <link rel="alternate" hreflang="id" href="https://javtiful.com/id/video/114939/huntc-676?utm_source=chatgpt.com">
+            <link rel="alternate" hreflang="ja" href="https://javtiful.com/ja/video/114939/huntc-676?utm_source=chatgpt.com">
+            <link rel="alternate" hreflang="zh" href="https://javtiful.com/zh/video/114939/huntc-676?utm_source=chatgpt.com">
+            <link rel="alternate" hreflang="kr" href="https://javtiful.com/kr/video/114939/huntc-676?utm_source=chatgpt.com">
+            <link rel="alternate" hreflang="vn" href="https://javtiful.com/vn/video/114939/huntc-676?utm_source=chatgpt.com">
+        <link rel="alternate" hreflang="x-default" href="https://javtiful.com/video/114939/huntc-676?utm_source=chatgpt.com">
+    <meta property="og:site_name" content="Javtiful">
+    <meta property="og:title" content="HUNTC-676 30 Seconds After Getting Home, It&#039;s &quot;Welcome Home&quot; Follow... | Javtiful">
+    <meta property="og:description" content="Watch HUNTC-676 30 Seconds After Getting Home, It&#039;s &quot;Welcome Home&quot; Followed By Immediate Penetration! My House Has Become A Hangout For Troubled Female Stude...">
+    <meta property="og:type" content="video.other">
+    <meta property="og:url" content="https://javtiful.com/video/114939/huntc-676">
+    <meta property="og:image" content="https://javtiful.com/uploads/uploads/videos/thumbs/2026/10/23/afa78ef169f5b8762dc9491042bea134.jpg">
+            <meta property="og:video:image" content="https://javtiful.com/uploads/uploads/videos/thumbs/2026/10/23/afa78ef169f5b8762dc9491042bea134.jpg">
+                <meta property="og:image:alt" content="HUNTC-676 30 Seconds After Getting Home, It&#039;s &quot;Welcome Home&quot; Followed By Immediate Penetration! My House Has Become A Hangout For Troubled Female Students">
+        <meta property="og:locale" content="en">
+            <meta property="article:published_time" content="2026-10-23T01:54:37+07:00">
+                <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="HUNTC-676 30 Seconds After Getting Home, It&#039;s &quot;Welcome Home&quot; Follow... | Javtiful">
+    <meta name="twitter:description" content="Watch HUNTC-676 30 Seconds After Getting Home, It&#039;s &quot;Welcome Home&quot; Followed By Immediate Penetration! My House Has Become A Hangout For Troubled Female Stude...">
+    <meta name="twitter:image" content="https://javtiful.com/uploads/uploads/videos/thumbs/2026/10/23/afa78ef169f5b8762dc9491042bea134.jpg">
+            <meta name="twitter:image:alt" content="HUNTC-676 30 Seconds After Getting Home, It&#039;s &quot;Welcome Home&quot; Followed By Immediate Penetration! My House Has Become A Hangout For Troubled Female Students">
+                <link rel="icon" href="/uploads/site/icon/2026/04/27/new_jt_icon.png">
+                <script type="application/ld+json">
+            {"@context":"https://schema.org","@type":"VideoObject","name":"HUNTC-676 30 Seconds After Getting Home, It\u0027s \u0022Welcome Home\u0022 Followed By Immediate Penetration! My House Has Become A Hangout For Troubled Female Students","description":"Watch HUNTC-676 30 Seconds After Getting Home, It\u0027s \u0022Welcome Home\u0022 Followed By Immediate Penetration! My House Has Become A Hangout For Troubled Female Stude...","thumbnailUrl":["https://javtiful.com/uploads/uploads/videos/thumbs/2026/10/23/afa78ef169f5b8762dc9491042bea134.jpg"],"uploadDate":"2026-10-23T01:54:37+07:00","duration":"PT3H23M17S","embedUrl":"https://javtiful.com/embed/114939","url":"https://javtiful.com/video/114939/huntc-676","interactionStatistic":{"@type":"InteractionCounter","interactionType":{"@type":"WatchAction"},"userInteractionCount":9449}}        </script>
+            <script type="application/ld+json">
+            {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://javtiful.com/main"},{"@type":"ListItem","position":2,"name":"Videos","item":"https://javtiful.com/videos"},{"@type":"ListItem","position":3,"name":"HUNTC-676 30 Seconds After Getting Home, It\u0027s \u0022Welcome Home\u0022 Followed By Immediate Penetration! My House Has Become A Hangout For Troubled Female Students","item":"https://javtiful.com/video/114939/huntc-676"}]}        </script>
+            <script type="application/ld+json">
+            {"@context":"https://schema.org","@type":"WebSite","name":"Javtiful","url":"https://javtiful.com/main","potentialAction":{"@type":"SearchAction","target":"https://javtiful.com/search?q={search_term_string}","query-input":"required name=search_term_string"}}        </script>
+            <script type="application/ld+json">
+            {"@context":"https://schema.org","@type":"Organization","name":"Javtiful","url":"https://javtiful.com/main","logo":"https://javtiful.com/uploads/site/logo/2026/04/27/215c2694af8e5a2a3b487b6711f22866.png"}        </script>
+                <script async src="https://www.googletagmanager.com/gtag/js?id=G-3NDZG9WXYS"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+
+            function gtag() {
+                dataLayer.push(arguments);
+            }
+            gtag('js', new Date());
+            gtag('config', 'G-3NDZG9WXYS');
+        </script>
+            <link rel="preload" href="/assets/front/css/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="/assets/front/css/font.css?v=d1cb1&amp;rev=1777289810">
+    <link rel="stylesheet" href="/assets/front/bootstrap/css/bootstrap.min.css?v=d1cb1&amp;rev=1777289810">
+            <link rel="preconnect" href="https://cdn.plyr.io" crossorigin>
+        <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css">
+        <link rel="stylesheet" href="/assets/front/css/base.css?v=d1cb1&amp;rev=1792580156">
+    <link rel="stylesheet" href="/assets/front/css/fonts.css?v=d1cb1&amp;rev=1791560352">
+    <link rel="stylesheet" href="/assets/front/css/layout.css?v=d1cb1&amp;rev=1792683963">
+    <link rel="stylesheet" href="/assets/front/css/home-live.css?v=d1cb1&amp;rev=1791986781">        <link rel="stylesheet" href="/assets/front/css/theme.css?v=d1cb1&amp;rev=1791867730">
+                                                                        <link rel="stylesheet" href="/assets/front/css/watch.css?v=d1cb1&amp;rev=1791984860">
+                        </head>
+
+<body class="site-page watch-page" data-front-theme="dark" use-theme="dark">
+                        <script type="text/javascript" src="//ccsq.cogninotow.site/bWxCba7.js" data-spots="482544" data-tag="asg" data-subid1="%subid1%" data-subid2="%subid2%"></script>            <script type="text/javascript" src="//ccsq.cogninotow.site/gO7PKL3.js" data-spots="521570" data-tag="asg" data-subid1="%subid1%" data-subid2="%subid2%"></script>        
+        <div class="site-shell" data-site-shell>
+    <header class="site-header">
+    <div class="site-header__brand">
+        <button type="button" class="navigation-toggle" data-sidebar-toggle aria-label="Collapse sidebar" aria-expanded="true" aria-controls="site-navigation">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg>
+        </button>
+            <a class="site-brand" href="/main" aria-label="Javtiful Home">
+                    <img class="site-brand__image" src="/uploads/site/logo/2026/04/27/215c2694af8e5a2a3b487b6711f22866.png" alt="Javtiful" width="110" height="28">
+            </a>
+    </div>
+    <div class="site-header__actions">
+        <form class="search-field" action="/search" method="get" role="search">
+            <label><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 10.5a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0 M16 16l5 5"/></svg><input type="search" name="q" value="" placeholder="Search videos, channels, actresses" aria-label="Search videos, channels, actresses" required></label>
+        </form>
+        <button type="button" class="icon-button search-toggle" data-search-toggle aria-label="Search" aria-expanded="false" aria-controls="mobile-search"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 10.5a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0 M16 16l5 5"/></svg></button>
+        <a class="premium-link" href="/premium-benefit"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 18 2-11 5 5 2-7 2 7 5-5 2 11z"/></svg><span>Premium</span></a>
+        <div class="header-menu preferences-menu">
+    <button type="button" class="icon-button preferences-toggle" data-popover-toggle="preferences-options" aria-label="Appearance and language" title="Appearance and language" aria-expanded="false" aria-controls="preferences-options">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>
+    </button>
+    <div class="menu-popover preferences-popover" id="preferences-options" data-preferences-menu data-direction="forward" hidden>
+        <div class="preferences-panel" data-preferences-panel="main">
+                            <button type="button" class="menu-option" data-preferences-open="appearance" aria-controls="preferences-appearance">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor" stroke="none"/></svg><span>Appearance</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+                </button>
+                        <button type="button" class="menu-option" data-preferences-open="language" aria-controls="preferences-language"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0 M3 12h18 M16 12c0 5-1.8 9-4 9s-4-4-4-9 1.8-9 4-9 4 4 4 9"/></svg><span>Language Switching</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
+        </div>
+                    <div class="preferences-panel" id="preferences-appearance" data-preferences-panel="appearance" hidden>
+                <button type="button" class="menu-option preferences-back" data-preferences-back aria-label="Back to settings from Appearance"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 5-7 7 7 7M3 12h18"/></svg><span>Appearance</span></button>
+                <p class="preferences-note" id="preferences-theme-note">Setting applies to this browser only</p>
+<fieldset class="preferences-choices" aria-label="Appearance" aria-describedby="preferences-theme-note">
+            <label class="menu-option preferences-choice">
+            <input class="preferences-radio" type="radio" name="preferences-theme-preference" value="system" data-front-theme-choice>
+            <svg class="preferences-choice-icon" data-theme-icon="system" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/>
+                            </svg><span>Use device theme</span>
+            <svg class="preferences-check" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 12 5 5L20 6"/></svg>
+        </label>
+            <label class="menu-option preferences-choice">
+            <input class="preferences-radio" type="radio" name="preferences-theme-preference" value="dark" data-front-theme-choice>
+            <svg class="preferences-choice-icon" data-theme-icon="dark" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M20.8 13.1A9 9 0 0 1 10.9 3.2 9 9 0 1 0 20.8 13.1Z"/>
+                            </svg><span>Dark theme</span>
+            <svg class="preferences-check" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 12 5 5L20 6"/></svg>
+        </label>
+            <label class="menu-option preferences-choice">
+            <input class="preferences-radio" type="radio" name="preferences-theme-preference" value="light" data-front-theme-choice>
+            <svg class="preferences-choice-icon" data-theme-icon="light" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+                            </svg><span>Light theme</span>
+            <svg class="preferences-check" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 12 5 5L20 6"/></svg>
+        </label>
+    </fieldset>
+            </div>
+                <div class="preferences-panel" id="preferences-language" data-preferences-panel="language" hidden>
+            <button type="button" class="menu-option preferences-back" data-preferences-back aria-label="Back to settings from Language Switching"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 5-7 7 7 7M3 12h18"/></svg><span>Language Switching</span></button>
+                            <a class="menu-option is-active" href="/video/114939/huntc-676?utm_source=chatgpt.com" lang="en" aria-current="true"><span>English</span><small>EN</small></a>
+                            <a class="menu-option" href="/id/video/114939/huntc-676?utm_source=chatgpt.com" lang="id"><span>Indonesia</span><small>ID</small></a>
+                            <a class="menu-option" href="/ja/video/114939/huntc-676?utm_source=chatgpt.com" lang="ja"><span>Japanese</span><small>JA</small></a>
+                            <a class="menu-option" href="/zh/video/114939/huntc-676?utm_source=chatgpt.com" lang="zh"><span>Chinese</span><small>ZH</small></a>
+                            <a class="menu-option" href="/kr/video/114939/huntc-676?utm_source=chatgpt.com" lang="kr"><span>Korean</span><small>KR</small></a>
+                            <a class="menu-option" href="/vn/video/114939/huntc-676?utm_source=chatgpt.com" lang="vn"><span>Vietnamese</span><small>VN</small></a>
+                    </div>
+    </div>
+</div>
+                    <a class="icon-button account-toggle" href="/login" data-auth-open="login" aria-label="Login"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg></a>
+            </div>
+    <form class="mobile-search" id="mobile-search" action="/search" method="get" role="search" hidden>
+        <label><input type="search" name="q" value="" placeholder="Search videos, channels, actresses" aria-label="Search videos, channels, actresses" required><button type="button" class="search-clear" data-search-clear aria-label="Clear search" hidden><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 6 12 12 M18 6 6 18"/></svg></button><button type="submit" class="search-submit" aria-label="Search"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 10.5a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0 M16 16l5 5"/></svg></button></label>
+        <button type="button" class="icon-button" data-search-toggle aria-label="Close search"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 6 12 12 M18 6 6 18"/></svg></button>
+    </form>
+</header>
+    <div class="popover-backdrop" data-popover-close hidden></div>
+    <div class="site-columns">
+        <div class="drawer-backdrop" data-drawer-close hidden></div>
+        <aside class="site-sidebar" id="site-navigation" aria-label="Primary navigation">
+    <div class="drawer-navigation" data-drawer-panel="main">
+    <nav class="navigation-list">
+                                                                <a class="navigation-link" href="/main" title="Home">
+                                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 3l9 8v10h-6v-6H9v6H3z"/></svg>                                        <span class="navigation-link__label">Home</span>                </a>
+                                                            <a class="navigation-link" href="/foryou" title="For You">
+                                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.4 5.2 5.6.7-4.1 3.9 1.1 5.6L12 15.6 7 18.4l1.1-5.6L4 8.9l5.6-.7z"/></svg>                                        <span class="navigation-link__label">For You</span>                </a>
+                                                            <a class="navigation-link" href="/shorts" title="Shorts">
+                                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3h8a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z M10 9.5l4.5 2.5-4.5 2.5z"/></svg>                                        <span class="navigation-link__label">Shorts</span>                </a>
+                                                            <a class="navigation-link is-active" href="/videos" title="Videos" data-submenu-toggle="navigation-group-0-3" aria-expanded="true" aria-controls="navigation-group-0-3">
+                                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v14H4z M10 9l5 3-5 3z"/></svg>                                        <span class="navigation-link__label">Videos</span><span class="navigation-chevron"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></span>                </a>
+                                    <div class="navigation-submenu is-open" id="navigation-group-0-3"><div><div class="navigation-submenu__links">
+                        <a href="/videos">Videos</a><a href="/censored">Censored</a><a href="/uncensored">Uncensored</a><a href="/reducing-mosaic">Reducing Mosaic</a><a href="/videos?sort=popular_week">Popular This Week</a><a href="/videos?sort=most_viewed">Most Viewed</a><a href="/videos?sort=most_liked">Most Liked</a>                    </div></div></div>
+                                                            <a class="navigation-link" href="/categories" title="Browse" data-submenu-toggle="navigation-group-0-4" aria-expanded="false" aria-controls="navigation-group-0-4">
+                                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v7H4z M13 4h7v7h-7z M4 13h7v7H4z M13 13h7v7h-7z"/></svg>                                        <span class="navigation-link__label">Browse</span><span class="navigation-chevron"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></span>                </a>
+                                    <div class="navigation-submenu" id="navigation-group-0-4" inert><div><div class="navigation-submenu__links">
+                        <a href="/categories">Categories</a><a href="/channels">Channels</a><a href="/actresses">Actresses</a>                    </div></div></div>
+                                                <span class="navigation-divider"></span><span class="navigation-heading">Library</span>                                            <a class="navigation-link" href="/profile" title="My Feed" data-auth-open="login">
+                                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5-10-5z M2 17l10 5 10-5 M2 12l10 5 10-5"/></svg>                                        <span class="navigation-link__label">My Feed</span>                </a>
+                                                            <a class="navigation-link" href="/collections" title="Collections" data-auth-open="login">
+                                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h18v13H3z M6 4h12 M10 11l5 3-5 3z"/></svg>                                        <span class="navigation-link__label">Collections</span>                </a>
+                                                            <a class="navigation-link" href="/collections/subscriptions" title="Subscriptions" data-auth-open="login">
+                                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M22 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75"/></svg>                                        <span class="navigation-link__label">Subscriptions</span>                </a>
+                                                <span class="navigation-divider"></span><span class="navigation-heading">Partner</span>                                            <a class="navigation-link" href="https://t.nettrck.store/c1/b55dbeb3-59fc-48b3-b04d-a653bb2e26e7" title="LiveSex" target="_blank" rel="nofollow noopener">
+                                            <img class="navigation-link__icon" src="/uploads/ads/icons/2026/10/13/fdd41fee30b9d22da1e04c7bf6a29aa9.png" alt="" width="18" height="18" decoding="async">
+                                        <span class="navigation-link__label">LiveSex</span>                </a>
+                                                            <a class="navigation-link" href="https://rdx.jav.si/xd.php" title="LiveSexCams" target="_blank" rel="nofollow noopener">
+                                            <img class="navigation-link__icon" src="/uploads/ads/icons/2026/10/09/99ae4c330a0caee56bea15fe38369c00.png" alt="" width="18" height="18" decoding="async">
+                                        <span class="navigation-link__label">LiveSexCams</span>                </a>
+                                                            <a class="navigation-link" href="https://r.trwl1.com/c1/1c8fc935-1236-43a7-8b93-1a867a7bb1d9" title="JAVHD" target="_blank" rel="nofollow noopener">
+                                            <img class="navigation-link__icon" src="/uploads/ads/icons/2026/10/09/6281d81f48e4d8e7ad29d5ef18aa90a5.png" alt="" width="18" height="18" decoding="async">
+                                        <span class="navigation-link__label">JAVHD</span>                </a>
+                                        </nav>
+    <div class="drawer-language">
+                    <button type="button" class="navigation-link" data-drawer-appearance-open aria-expanded="false" aria-controls="drawer-appearance">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor" stroke="none"/></svg>
+                <span class="navigation-link__label">Appearance</span>
+                <span class="navigation-chevron"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></span>
+            </button>
+                <button type="button" class="navigation-link" data-submenu-toggle="drawer-languages" aria-expanded="false" aria-controls="drawer-languages"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0 M3 12h18 M16 12c0 5-1.8 9-4 9s-4-4-4-9 1.8-9 4-9 4 4 4 9"/></svg><span class="navigation-link__label">Language</span><small>EN</small><span class="navigation-chevron"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></span></button>
+        <div class="navigation-submenu" id="drawer-languages" inert><div><div class="navigation-submenu__links">
+            <a href="/video/114939/huntc-676?utm_source=chatgpt.com" class="is-active"><span>English</span><small>EN</small></a><a href="/id/video/114939/huntc-676?utm_source=chatgpt.com" class=""><span>Indonesia</span><small>ID</small></a><a href="/ja/video/114939/huntc-676?utm_source=chatgpt.com" class=""><span>Japanese</span><small>JA</small></a><a href="/zh/video/114939/huntc-676?utm_source=chatgpt.com" class=""><span>Chinese</span><small>ZH</small></a><a href="/kr/video/114939/huntc-676?utm_source=chatgpt.com" class=""><span>Korean</span><small>KR</small></a><a href="/vn/video/114939/huntc-676?utm_source=chatgpt.com" class=""><span>Vietnamese</span><small>VN</small></a>        </div></div></div>
+    </div>
+    </div>
+            <div class="preferences-panel drawer-preferences" id="drawer-appearance" data-drawer-panel="appearance" hidden>
+            <button type="button" class="menu-option preferences-back" data-drawer-appearance-back aria-label="Back to navigation from Appearance"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10 5-7 7 7 7M3 12h18"/></svg><span>Appearance</span></button>
+            <p class="preferences-note" id="drawer-theme-note">Setting applies to this browser only</p>
+<fieldset class="preferences-choices" aria-label="Appearance" aria-describedby="drawer-theme-note">
+            <label class="menu-option preferences-choice">
+            <input class="preferences-radio" type="radio" name="drawer-theme-preference" value="system" data-front-theme-choice>
+            <svg class="preferences-choice-icon" data-theme-icon="system" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/>
+                            </svg><span>Use device theme</span>
+            <svg class="preferences-check" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 12 5 5L20 6"/></svg>
+        </label>
+            <label class="menu-option preferences-choice">
+            <input class="preferences-radio" type="radio" name="drawer-theme-preference" value="dark" data-front-theme-choice>
+            <svg class="preferences-choice-icon" data-theme-icon="dark" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M20.8 13.1A9 9 0 0 1 10.9 3.2 9 9 0 1 0 20.8 13.1Z"/>
+                            </svg><span>Dark theme</span>
+            <svg class="preferences-check" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 12 5 5L20 6"/></svg>
+        </label>
+            <label class="menu-option preferences-choice">
+            <input class="preferences-radio" type="radio" name="drawer-theme-preference" value="light" data-front-theme-choice>
+            <svg class="preferences-choice-icon" data-theme-icon="light" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+                            </svg><span>Light theme</span>
+            <svg class="preferences-check" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 12 5 5L20 6"/></svg>
+        </label>
+    </fieldset>
+        </div>
+    </aside>
+        <div class="site-content">
+                                <div class="front-feature-placement front-feature-placement-text announcement-bar" data-front-feature-placement>
+                            <div class="front-feature-placement-item">Exclusive Offer for Javtiful Users: Access: <a href="https://r.trwl1.com/c1/8d727080-5973-40a5-9479-6a095dd4de9a" target="_blank">JavHD</a> Today Only for $1.00! <a href="https://r.trwl1.com/c1/8d727080-5973-40a5-9479-6a095dd4de9a" target="_blank">GET ACCESS</a></div>            </div>
+                        <main class="page-content watch-content">
+                <div class="notice-stack" aria-live="polite">
+                                                        </div>                <section class="watch-layout" data-watch-layout>
+    <div class="watch-main">
+        <div class="front-player-stage-wrap">
+    <div class="front-player-shell">
+                    <video id="front-player" preload="none" playsinline webkit-playsinline poster="/uploads/uploads/videos/thumbs/2026/10/23/afa78ef169f5b8762dc9491042bea134.jpg" class="front-player">
+    Your browser does not support HTML5 video.
+</video>
+<div class="front-playback-gate" data-playback-gate>
+    <button type="button" class="front-playback-start front-playback-start-center" data-playback-start aria-label="Play video">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l14-8z"/></svg>
+    </button>
+</div>
+<div class="front-playback-status" data-playback-status role="status" aria-live="polite" hidden></div>
+<noscript><div class="front-playback-status">Enable JavaScript to play this video.</div></noscript>
+            </div>
+    <div class="front-feature-placement front-feature-placement-player" data-front-feature-placement><button type="button" class="front-feature-placement-close" data-front-feature-close aria-label="Close panel"><span aria-hidden="true">&times;</span><strong>Close</strong></button><div class="front-feature-placement-item" data-front-feature-item data-front-feature-kind="embed" data-front-feature-id="6"><script data-cfasync="false" type="text/javascript" src="//chaseherbalpasty.com/lv/esnk/2004725/code.js" async class="__clb-2004725"></script></div></div></div>
+        <div class="watch-title">
+    <h1>HUNTC-676 30 Seconds After Getting Home, It&#039;s &quot;Welcome Home&quot; Followed By Immediate Penetration! My House Has Become A Hangout For Troubled Female Students</h1>
+    <div class="watch-stats">
+        <span>9.4K views</span>
+    </div>
+    <div class="watch-toolbar" data-front-watch-actions>
+        <div class="watch-actions-group watch-reaction-group">
+            <button
+                type="button"
+                class="watch-action-btn is-reaction "
+                data-front-reaction-button
+                data-reaction="like"
+                aria-label="Like video"
+                data-endpoint="/video/114939/react">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 11v9H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3zm0 0l4.2-7.5a1.5 1.5 0 0 1 2.8.7V9h5a2 2 0 0 1 2 2.3l-1 6.5A2 2 0 0 1 18 20H7"/></svg>
+                <strong data-front-likes-count>5</strong>
+            </button>
+            <button
+                type="button"
+                class="watch-action-btn is-reaction "
+                data-front-reaction-button
+                data-reaction="dislike"
+                aria-label="Dislike video"
+                data-endpoint="/video/114939/react">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 13V4h3a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-3zm0 0l-4.2 7.5a1.5 1.5 0 0 1-2.8-.7V15H5a2 2 0 0 1-2-2.3l1-6.5A2 2 0 0 1 6 4h11"/></svg>
+                <strong data-front-dislikes-count>2</strong>
+            </button>
+        </div>
+        <div class="watch-actions">
+                        <button type="button" class="watch-action" data-front-share-toggle aria-label="Share &amp; Earn" title="Share &amp; Earn" aria-expanded="false" aria-controls="watch-share-panel">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4 M15.4 6.5l-6.8 4"/></svg>
+                <span>Share &amp; Earn</span>
+            </button>
+            <button
+                type="button"
+                class="watch-action"
+                data-front-add-toggle
+                aria-haspopup="menu"
+                aria-label="Add To" title="Add To" aria-expanded="false"
+                aria-controls="watch-add-menu">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14 M5 12h14"/></svg>
+                <span>Add To</span><svg class="action-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <button
+                type="button"
+                class="watch-action"
+                data-front-report-toggle
+                aria-label="Report" title="Report" aria-expanded="false"
+                aria-controls="watch-report-panel">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4 M5 4h12.5l-2.5 5 2.5 5H5"/></svg>
+                <span>Report</span>
+            </button>
+            <button
+                type="button"
+                class="watch-action"
+                data-front-download-toggle
+                data-download-endpoint="/video/114939/download-link"
+                aria-label="Download" title="Download" aria-expanded="false"
+                aria-controls="watch-download-panel"
+                >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11 M7 10.5l5 5 5-5 M5 20h14"/></svg>
+                <span>Download</span>
+            </button>
+        </div>
+        <div class="watch-add-menu d-none" id="watch-add-menu" role="menu" data-front-add-box>
+            <div class="action-panel-grid">
+                <button type="button" class="action-panel-option" role="menuitem" data-front-playlist-toggle aria-expanded="false" aria-controls="playlist-dialog">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h12 M4 12h12 M4 17h7 M19 13v6 M16 16h6"/></svg>
+                    <span>Add to Playlist</span>
+                </button>
+                <button
+                    type="button"
+                    class="action-panel-option "
+                    data-front-favorite-button
+                    role="menuitem"
+                    data-endpoint="/video/114939/favorite">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 14.8 9 21 9.6 16.4 14 17.7 20.5 12 17.3 6.3 20.5 7.6 14 3 9.6 9.2 9Z"/></svg>
+                    <span data-front-favorite-label>Add to Favorites</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="watch-action-panels">
+        <div class="action-panel d-none" id="watch-share-panel" data-front-share-box>
+            <button type="button" class="action-panel-close" data-front-panel-close="share" aria-label="Close share panel">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <div class="share-panel">
+                <p class="panel-title">Share &amp; Earn</p>
+                <p class="share-earn-text">
+                    You can earn money by share this link, login to get your referral code.                </p>
+                <label class="share-field">
+                    <span>Link</span>
+                    <div class="share-input-wrap">
+                        <input type="text" class="form-control" value="https://jav.si/v/114939" readonly data-front-copy-source="share-link">
+                        <button type="button" class="copy-button" data-front-copy-button="share-link">Copy</button>
+                    </div>
+                </label>
+                <label class="share-field">
+                    <span>Embed Code</span>
+                    <div class="share-input-wrap">
+                        <textarea class="form-control" rows="3" readonly data-front-copy-source="embed-code">&lt;iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://javtiful.com/embed/114939&quot; title=&quot;Video player&quot; frameborder=&quot;0&quot; allow=&quot;fullscreen; picture-in-picture&quot; allowfullscreen loading=&quot;lazy&quot; referrerpolicy=&quot;strict-origin-when-cross-origin&quot;&gt;&lt;/iframe&gt;</textarea>
+                        <button type="button" class="copy-button" data-front-copy-button="embed-code">Copy</button>
+                    </div>
+                </label>
+            </div>
+        </div>
+        <div class="action-panel download-panel d-none" id="watch-download-panel" data-front-download-box>
+            <button type="button" class="action-panel-close" data-front-panel-close="download" aria-label="Close download panel">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <div class="action-panel-grid" data-front-download-content>
+                                    <div class="download-locked">
+                        <span>Download is available for Premium only.</span>
+                                                    <a class="button-primary" href="/login" data-auth-open="login">Login</a>
+                                            </div>
+                            </div>
+        </div>
+        <div class="action-panel report-box d-none" id="watch-report-panel" data-front-report-box>
+            <button type="button" class="action-panel-close" data-front-panel-close="report" aria-label="Close report form">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            <form class="report-form" data-front-report-form data-endpoint="/video/114939/report">
+                                <p class="panel-title">Report</p>
+                <label class="visually-hidden" for="report-content">Report</label>
+                <textarea id="report-content" name="content" class="form-control" rows="4" maxlength="1000" placeholder="Describe the issue you found with this video..." data-front-report-content></textarea>
+                <small class="text-danger d-block mt-2" data-front-report-error></small>
+                <div class="report-actions">
+                    <button type="button" class="button-secondary" data-front-panel-close="report">Cancel</button>
+                    <button type="submit" class="button-primary" data-front-report-submit>Submit Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+                <div class="watch-feature-strip">
+            <div class="front-feature-placement front-feature-placement-wide" data-front-feature-placement><div class="front-feature-placement-item leaderboard-placement" data-front-feature-item data-front-feature-kind="embed" data-front-feature-id="4" data-leaderboard><div class="leaderboard-content" data-leaderboard-content><script data-cfasync="false" type="text/javascript" src="//chaseherbalpasty.com/lv/esnk/1999869/code.js" async class="__clb-1999869"></script></div></div></div>        </div>
+    </div>
+        <div class="watch-meta">
+    <div class="watch-detail-list">
+        <div class="watch-detail">
+            <strong>Actresses</strong>
+            <div class="watch-actor-list">
+                                                            <a href="/actress/itoi-ruka" class="watch-actor-card">
+                            <img src="/uploads/uploads/collections/actresses/2026/05/03/829f1fc0016f8cc0941fbcabf385dbbb.jpg" alt="Itoi Ruka" loading="lazy" decoding="async">
+                            <span>Itoi Ruka</span>
+                        </a>
+                                                    <button
+                    type="button"
+                    class="actress-correction-toggle"
+                    data-front-actress-correction-toggle
+                    aria-expanded="false"
+                    aria-controls="actress-correction-form">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="m4 16.7 9.9-9.9 3.3 3.3L7.3 20H4v-3.3Zm11.1-12 1.2-1.2a1.7 1.7 0 0 1 2.4 0l1.8 1.8a1.7 1.7 0 0 1 0 2.4l-1.2 1.2-4.2-4.2Z" fill="currentColor"></path>
+                    </svg>
+                    <span>Correction</span>
+                </button>
+            </div>
+            <form
+                class="actress-correction-form d-none"
+                id="actress-correction-form"
+                data-front-actress-correction-form
+                data-endpoint="/video/114939/report">
+                                <label for="actress-correction-name" class="panel-title">Correct actress name</label>
+                <input
+                    type="text"
+                    id="actress-correction-name"
+                    name="actress_name"
+                    class="form-control"
+                    minlength="2"
+                    maxlength="120"
+                    autocomplete="off"
+                    inputmode="text"
+                    placeholder="Enter the correct actress name"
+                    data-front-actress-correction-input>
+                <div class="form-actions"><button type="button" class="button-secondary" data-correction-cancel>Cancel</button><button type="submit" class="button-primary" data-front-actress-correction-submit>Submit Correction</button></div>
+                <small class="text-danger" data-front-actress-correction-error></small>
+            </form>
+        </div>
+        <div class="watch-detail">
+            <strong>Tags</strong>
+            <div class="watch-link-list">
+                                                            <a href="/search?q=creampie" class="watch-link-chip">creampie</a>
+                                            <a href="/search?q=blowjob" class="watch-link-chip">blowjob</a>
+                                            <a href="/search?q=cowgirl" class="watch-link-chip">cowgirl</a>
+                                            <a href="/search?q=school+uniform" class="watch-link-chip">school uniform</a>
+                                                </div>
+        </div>
+        <div class="watch-detail">
+            <strong>Categories</strong>
+            <div class="watch-link-list">
+                                                            <a href="/category/beautiful-girl" class="watch-link-chip is-category">Beautiful Girl</a>
+                                            <a href="/category/school-girls" class="watch-link-chip is-category">School Girls</a>
+                                                </div>
+        </div>
+        <div class="watch-detail">
+            <strong>Channel</strong>
+                            <a href="/channel/hunter" class="watch-inline-link">Hunter</a>
+                    </div>
+        <div class="watch-detail">
+            <strong>Video Type</strong>
+            <span class="watch-detail-value">Censored</span>
+        </div>
+        <div class="watch-detail">
+            <strong>Added on</strong>
+            <span class="watch-detail-value">
+                <time datetime="2026-10-23T08:54:37+07:00" data-front-local-datetime="2026-10-23 01:54:37">23 Oct 2026 08:54</time> (7 hours ago)            </span>
+        </div>
+    </div>
+</div>
+        <section class="home-section home-live" data-home-live data-endpoint="/api/live/home-source" aria-labelledby="home-live-title" hidden>
+    <div class="home-live__heading">
+        <span class="home-live__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/><path d="M8.5 8.5a5 5 0 0 0 0 7 M15.5 8.5a5 5 0 0 1 0 7 M5.6 5.6a9 9 0 0 0 0 12.8 M18.4 5.6a9 9 0 0 1 0 12.8"/></svg></span>
+        <h2 id="home-live-title">Live</h2>
+    </div>
+    <div class="home-live__rail" data-home-live-rail data-scroll-rail data-rail-pages data-rail-card-pages></div>
+    <div class="rail-pagination home-live__pagination" aria-label="Live" data-rail-pagination></div>
+    <template data-home-live-card>
+        <a class="home-live__card" draggable="false" rel="sponsored noopener noreferrer" target="_blank">
+            <span class="home-live__thumbnail">
+                <img class="home-live__snapshot" data-live-snapshot alt="" loading="lazy" decoding="async" width="270" height="480" draggable="false" referrerpolicy="no-referrer">
+                <span class="home-live__badge"><span aria-hidden="true"></span>Live</span>
+                <span class="home-live__shade" aria-hidden="true"></span>
+                <span class="home-live__profile">
+                    <img class="home-live__avatar" data-live-avatar alt="" loading="lazy" decoding="async" width="28" height="28" draggable="false" referrerpolicy="no-referrer">
+                    <span class="home-live__copy">
+                        <span class="home-live__username" data-live-username></span>
+                        <span class="home-live__watching"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 12s3.8-7 10.5-7 10.5 7 10.5 7-3.8 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3"/></svg><span data-live-viewers></span></span>
+                    </span>
+                </span>
+            </span>
+        </a>
+    </template>
+</section>
+                    <div class="watch-tabs" role="tablist" aria-label="More from Actresses / Comments" data-watch-tabs hidden>
+                <button type="button" class="watch-tab" id="watch-more-tab" role="tab" aria-selected="true" aria-controls="watch-more-panel" data-watch-tab="watch-more-panel">More from Actresses</button>
+                <button type="button" class="watch-tab" id="watch-comments-tab" role="tab" aria-selected="false" aria-controls="watch-comments-panel" tabindex="-1" data-watch-tab="watch-comments-panel">Comments<span class="watch-tab__count" data-watch-comment-count>0</span></button>
+            </div>
+            <div class="watch-actress-videos" id="watch-more-panel">
+                <div class="section-heading">
+                    <div>
+                        <h2>More from Actresses</h2>
+                    </div>
+                </div>
+                <div class="video-grid">
+                            <article class="video-card">
+    <a href="/video/113051/hbad-740" class="video-card__thumbnail" data-front-video-preview-src="https://syyejpyh6yupolshmbfitseg.jav.si/videos/previews/2026/09/VID-AECC62CE/VID-AECC62CE_preview.mp4">
+        <img src="/assets/front/media/video-thumb-placeholder.svg" data-front-lazy-src="/uploads/uploads/videos/thumbs/2026/09/03/2553b07b8454e9e6a4256bf3bdfac58d.jpg" alt="Thumbnail for HBAD-740 Ruka Itoi: My Son&#039;s Girlfriend Has A Short Haircut, Big Breasts, And A Baby Face, And Her Body Is So Sexy I Couldn&#039;t Resist." decoding="async" width="640" height="360">
+                    <span class="video-card__progress" aria-hidden="true" data-front-video-preview-progress><span></span></span>
+                                <span class="video-card__shade" aria-hidden="true"></span>
+        <span class="video-card__details"><strong>FHD</strong>02:00:50</span>
+            </a>
+    <div class="video-card__copy">
+        <a href="/video/113051/hbad-740" class="video-card__title" title="HBAD-740 Ruka Itoi: My Son&#039;s Girlfriend Has A Short Haircut, Big Breasts, And A Baby Face, And Her Body Is So Sexy I Couldn&#039;t Resist.">HBAD-740 Ruka Itoi: My Son&#039;s Girlfriend Has A Short Haircut, Big Breasts, And A Baby Face, And Her Body Is So Sexy I Couldn&#039;t Resist.</a>
+        <div class="video-card__meta">19.5K views <span aria-hidden="true">·</span> 50 days ago</div>
+            </div>
+</article>
+        <article class="video-card">
+    <a href="/video/112501/nhdtc-233" class="video-card__thumbnail" data-front-video-preview-src="https://syyejpyh6yupolshmbfitseg.jav.si/videos/previews/2026/08/VID-13D78639/VID-13D78639_preview.mp4">
+        <img src="/assets/front/media/video-thumb-placeholder.svg" data-front-lazy-src="/uploads/uploads/videos/thumbs/2026/08/20/24f8c1cec01971cae7e2896a6b09be88.jpg" alt="Thumbnail for NHDTC-233 The Younger Sister, Aroused By Hearing Her Older Sister&#039;s Moans That Could Be Heard Even Through The Partition Curtain" decoding="async" width="640" height="360">
+                    <span class="video-card__progress" aria-hidden="true" data-front-video-preview-progress><span></span></span>
+                                <span class="video-card__shade" aria-hidden="true"></span>
+        <span class="video-card__details"><strong>FHD</strong>02:08:00</span>
+            </a>
+    <div class="video-card__copy">
+        <a href="/video/112501/nhdtc-233" class="video-card__title" title="NHDTC-233 The Younger Sister, Aroused By Hearing Her Older Sister&#039;s Moans That Could Be Heard Even Through The Partition Curtain">NHDTC-233 The Younger Sister, Aroused By Hearing Her Older Sister&#039;s Moans That Could Be Heard Even Through The Partition Curtain</a>
+        <div class="video-card__meta">105K views <span aria-hidden="true">·</span> 64 days ago</div>
+            </div>
+</article>
+        <article class="video-card">
+    <a href="/video/114395/cemd-898" class="video-card__thumbnail" data-front-video-preview-src="https://syyejpyh6yupolshmbfitseg.jav.si/videos/previews/2026/10/VID-B7A14B4C/VID-B7A14B4C_preview.mp4">
+        <img src="/assets/front/media/video-thumb-placeholder.svg" data-front-lazy-src="/uploads/uploads/videos/thumbs/2026/10/10/bd6cef4d1243fc30b59f61f6b8acb8d9.jpg" alt="Thumbnail for CEMD-898 Ruka Itoi, A Busty Wife Burdened With Debt, Was Sold Off To A Soapland Specializing In Anal Licking." decoding="async" width="640" height="360">
+                    <span class="video-card__progress" aria-hidden="true" data-front-video-preview-progress><span></span></span>
+                                <span class="video-card__shade" aria-hidden="true"></span>
+        <span class="video-card__details"><strong>FHD</strong>02:44:23</span>
+            </a>
+    <div class="video-card__copy">
+        <a href="/video/114395/cemd-898" class="video-card__title" title="CEMD-898 Ruka Itoi, A Busty Wife Burdened With Debt, Was Sold Off To A Soapland Specializing In Anal Licking.">CEMD-898 Ruka Itoi, A Busty Wife Burdened With Debt, Was Sold Off To A Soapland Specializing In Anal Licking.</a>
+        <div class="video-card__meta">16.8K views <span aria-hidden="true">·</span> 13 days ago</div>
+            </div>
+</article>
+        <article class="video-card">
+    <a href="/video/114275/nhdtc-259" class="video-card__thumbnail" data-front-video-preview-src="https://syyejpyh6yupolshmbfitseg.jav.si/videos/previews/2026/10/VID-ED40D8FA/VID-ED40D8FA_preview.mp4">
+        <img src="/assets/front/media/video-thumb-placeholder.svg" data-front-lazy-src="/uploads/uploads/videos/thumbs/2026/10/08/f3f2e0a730c6b710e3583de0d5934e1b.jpg" alt="Thumbnail for NHDTC-259 Cutout Girl Whose Nipples Become Erect And Aroused From The Shame Of Having Raw Milk Spilled Out Of Her Chest Hole." decoding="async" width="640" height="360">
+                    <span class="video-card__progress" aria-hidden="true" data-front-video-preview-progress><span></span></span>
+                                <span class="video-card__shade" aria-hidden="true"></span>
+        <span class="video-card__details"><strong>FHD</strong>03:14:21</span>
+            </a>
+    <div class="video-card__copy">
+        <a href="/video/114275/nhdtc-259" class="video-card__title" title="NHDTC-259 Cutout Girl Whose Nipples Become Erect And Aroused From The Shame Of Having Raw Milk Spilled Out Of Her Chest Hole.">NHDTC-259 Cutout Girl Whose Nipples Become Erect And Aroused From The Shame Of Having Raw Milk Spilled Out Of Her Chest Hole.</a>
+        <div class="video-card__meta">86.4K views <span aria-hidden="true">·</span> 15 days ago</div>
+            </div>
+</article>
+        <article class="video-card">
+    <a href="/video/114159/sora-652" class="video-card__thumbnail" data-front-video-preview-src="https://syyejpyh6yupolshmbfitseg.jav.si/videos/previews/2026/10/VID-8BF6FBDC/VID-8BF6FBDC_preview.mp4">
+        <img src="/assets/front/media/video-thumb-placeholder.svg" data-front-lazy-src="/uploads/uploads/videos/thumbs/2026/10/03/5e7ca87408a177b15029203c0ec49735.jpg" alt="Thumbnail for SORA-652 The Big-breasted J-pop Idol Who Came To My Rescue Was Impaled And Gang-raped" decoding="async" width="640" height="360">
+                    <span class="video-card__progress" aria-hidden="true" data-front-video-preview-progress><span></span></span>
+                                <span class="video-card__shade" aria-hidden="true"></span>
+        <span class="video-card__details"><strong>FHD</strong>02:08:36</span>
+            </a>
+    <div class="video-card__copy">
+        <a href="/video/114159/sora-652" class="video-card__title" title="SORA-652 The Big-breasted J-pop Idol Who Came To My Rescue Was Impaled And Gang-raped">SORA-652 The Big-breasted J-pop Idol Who Came To My Rescue Was Impaled And Gang-raped</a>
+        <div class="video-card__meta">43.3K views <span aria-hidden="true">·</span> 20 days ago</div>
+            </div>
+</article>
+        <article class="video-card">
+    <a href="/video/111167/dandya-040" class="video-card__thumbnail" data-front-video-preview-src="https://syyejpyh6yupolshmbfitseg.jav.si/videos/previews/2026/07/VID-D5C7E3DA/VID-D5C7E3DA_preview.mp4">
+        <img src="/assets/front/media/video-thumb-placeholder.svg" data-front-lazy-src="/uploads/uploads/videos/thumbs/2026/07/19/d34d23b5f1de9e37378ae6120379a746.jpg" alt="Thumbnail for DANDYA-040 A Rapid-fire Video Of A Man Being Prosecuted By Two Busty Sisters Next Door While His Wife Is Away At Her Parents&#039; House To Give Birth" decoding="async" width="640" height="360">
+                    <span class="video-card__progress" aria-hidden="true" data-front-video-preview-progress><span></span></span>
+                                <span class="video-card__shade" aria-hidden="true"></span>
+        <span class="video-card__details"><strong>FHD</strong>03:38:30</span>
+            </a>
+    <div class="video-card__copy">
+        <a href="/video/111167/dandya-040" class="video-card__title" title="DANDYA-040 A Rapid-fire Video Of A Man Being Prosecuted By Two Busty Sisters Next Door While His Wife Is Away At Her Parents&#039; House To Give Birth">DANDYA-040 A Rapid-fire Video Of A Man Being Prosecuted By Two Busty Sisters Next Door While His Wife Is Away At Her Parents&#039; House To Give Birth</a>
+        <div class="video-card__meta">55.8K views <span aria-hidden="true">·</span> 96 days ago</div>
+            </div>
+</article>
+        <article class="video-card">
+    <a href="/video/113670/huntc-638" class="video-card__thumbnail" data-front-video-preview-src="https://syyejpyh6yupolshmbfitseg.jav.si/videos/previews/2026/09/VID-9E83C482/VID-9E83C482_preview.mp4">
+        <img src="/assets/front/media/video-thumb-placeholder.svg" data-front-lazy-src="/uploads/uploads/videos/thumbs/2026/09/18/f7afe6c26c710c4a5fe43f103009f4ed.jpg" alt="Thumbnail for HUNTC-638 I&#039;m In The SEX Club Starting Today! I Transferred To A School That Used To Be An All-girls School, And I&#039;m The Only Boy In My Class!! After-school SEX Practice Requires My Dick!" decoding="async" width="640" height="360">
+                    <span class="video-card__progress" aria-hidden="true" data-front-video-preview-progress><span></span></span>
+                                <span class="video-card__shade" aria-hidden="true"></span>
+        <span class="video-card__details"><strong>FHD</strong>03:06:49</span>
+            </a>
+    <div class="video-card__copy">
+        <a href="/video/113670/huntc-638" class="video-card__title" title="HUNTC-638 I&#039;m In The SEX Club Starting Today! I Transferred To A School That Used To Be An All-girls School, And I&#039;m The Only Boy In My Class!! After-school SEX Practice Requires My Dick!">HUNTC-638 I&#039;m In The SEX Club Starting Today! I Transferred To A School That Used To Be An All-girls School, And I&#039;m The Only Boy In My Class!! After-school SEX Practice Requires My Dick!</a>
+        <div class="video-card__meta">44.4K views <span aria-hidden="true">·</span> 35 days ago</div>
+            </div>
+</article>
+        <article class="video-card">
+    <a href="/video/113045/nhdtc-246" class="video-card__thumbnail" data-front-video-preview-src="https://syyejpyh6yupolshmbfitseg.jav.si/videos/previews/2026/09/VID-2BC62DEF/VID-2BC62DEF_preview.mp4">
+        <img src="/assets/front/media/video-thumb-placeholder.svg" data-front-lazy-src="/uploads/uploads/videos/thumbs/2026/09/03/34827f431087e63573b976c613ef7a55.jpg" alt="Thumbnail for NHDTC-246 Big-assed J○ Gets Turned On By The Shame Of A Slow, Face-to-face Cumshot On A Crowded Bus And Starts Masturbating" decoding="async" width="640" height="360">
+                    <span class="video-card__progress" aria-hidden="true" data-front-video-preview-progress><span></span></span>
+                                <span class="video-card__shade" aria-hidden="true"></span>
+        <span class="video-card__details"><strong>FHD</strong>02:31:18</span>
+            </a>
+    <div class="video-card__copy">
+        <a href="/video/113045/nhdtc-246" class="video-card__title" title="NHDTC-246 Big-assed J○ Gets Turned On By The Shame Of A Slow, Face-to-face Cumshot On A Crowded Bus And Starts Masturbating">NHDTC-246 Big-assed J○ Gets Turned On By The Shame Of A Slow, Face-to-face Cumshot On A Crowded Bus And Starts Masturbating</a>
+        <div class="video-card__meta">76K views <span aria-hidden="true">·</span> 50 days ago</div>
+            </div>
+</article>
+                </div>
+            </div>
+                <div class="watch-comments" id="watch-comments-panel" data-front-comments-section>
+    <div class="section-heading">
+        <div>
+            <h2>Comments</h2>
+            <p data-front-comments-count>0 threads</p>
+        </div>
+    </div>
+
+            <div class="comments-login-note mb-3">
+            <a href="/login" data-front-login-open>Sign in</a> to post a comment or reply.
+        </div>
+    
+    <div class="comment-thread" data-front-comment-thread data-replies-label=":count replies">
+                    <div class="comments-empty" data-front-comments-empty>No comments yet. Be the first to start the discussion.</div>
+            </div>
+</div>
+    </div>
+    <aside class="watch-related">
+        <div class="front-feature-placement front-feature-placement-side" data-front-feature-placement><div class="front-feature-placement-item" data-front-feature-item data-front-feature-kind="embed" data-front-feature-id="5"><div style="display:block">
+
+<div>
+<script
+  src="https://cdn.fozekikikiminu.com/sdk/v1/dd.ms.js"
+  data-ts-spot="yDUfP6FP8MXwnrge9EWwaCE1VXj8v5hy"
+  data-ts-domain="fozekikikiminu.com"
+  async defer
+></script>
+</div>
+
+<div class="mt-3">
+<script>
+(function(lhjv){
+var d = document,
+    s = d.createElement('script'),
+    l = d.scripts[d.scripts.length - 1];
+s.settings = lhjv || {};
+s.src = "\/\/loud-hall.com\/bxX\/Vgskd.GDl\/0kYpWVcA\/ReKmr9cuxZBUjlKkbPzTPU\/2AM\/T\/U\/0xN_jDIxt_NCTdY\/xBNcTwQ\/2dMKwx";
+s.async = true;
+s.referrerPolicy = 'no-referrer-when-downgrade';
+l.parentNode.insertBefore(s, l);
+})({})
+</script>
+</div>
+
+</div></div></div>                            <div class="video-grid related-grid">
+                        <article class="video-card">
+    <a href="/video/48686/107sdhs-044" class="video-card__thumbnail" data-front-video-preview-src="https://syyejpyh6yupolshmbfitseg.jav.si/videos/previews/2026/05/a6c2a415464b05bd46fb/a6c2a415464b05bd46fb_preview.mp4">
+        <img src="/assets/front/media/video-thumb-placeholder.svg" data-front-lazy-src="/uploads/uploads/videos/thumbs/2023/12/13/6a1ecef14586c6695494f4d5f0fe77c1.jpg" alt="Thumbnail for 107SDHS-044 Creampie with a high-class mistress whose looks, eroticism, and personality are all S-class. spirit" decoding="async" width="640" height="360">
+                    <span class="video-card__progress" aria-hidden="true" data-front-video-preview-progress><span></span></span>
+                                <span class="video-card__shade" aria-hidden="true"></span>
+        <span class="video-card__details"><strong>FHD</strong>01:30:03</span>
+            </a>
+    <div class="video-card__copy">
+        <a href="/video/48686/107sdhs-044" class="video-card__title" title="107SDHS-044 Creampie with a high-class mistress whose looks, eroticism, and personality are all S-class. spirit">107SDHS-044 Creampie with a high-class mistress whose looks, eroticism, and personality are all S-class. spirit</a>
+        <div class="video-card__meta">1.1M views <span aria-hidden="true">·</span> 1045 days ago</div>
+            </div>
+</article>
+        <article class="video-card video-card--partner">
+    <a href="https://t.fluxtrck.site/c1/c7adc5c0-855b-4735-b33b-470fbf0e9b55?externalId={impressionId}&amp;cv1={impressionId}&amp;cv2={userId}&amp;cv3={device}&amp;cv4={creativeId}&amp;cv5={campaignId}&amp;cv6={language}&amp;cv7=%SLAVA_KPSS%&amp;cv8={browser}&amp;cv9={siteId}&amp;cv10=Koto-jpnk_ROLJP" class="video-card__thumbnail" target="_blank" rel="nofollow noopener">
+        <img src="/uploads/uploads/ads/cards/2026/10/09/f0d9a314577a442f269ecf12a6d05ebc.jpg" alt="Partner thumbnail for Free AI Porn" loading="lazy" decoding="async" width="640" height="360">
+        <span class="video-card__shade" aria-hidden="true"></span><span class="video-card__details"><strong>Partner</strong></span>
+    </a>
+    <div class="video-card__copy">
+        <a href="https://t.fluxtrck.site/c1/c7adc5c0-855b-4735-b33b-470fbf0e9b55?externalId={impressionId}&amp;cv1={impressionId}&amp;cv2={userId}&amp;cv3={device}&amp;cv4={creativeId}&amp;cv5={campaignId}&amp;cv6={language}&amp;cv7=%SLAVA_KPSS%&amp;cv8={browser}&amp;cv9={siteId}&amp;cv10=Koto-jpnk_ROLJP" class="video-card__title" target="_blank" rel="nofollow noopener" title="Free AI Porn">Free AI Porn</a>
+        <p class="video-card__meta">Someone Naked</p>    </div>
+</article>
+        <article class="video-card">
+    <a href="/video/48682/okk-022" class="video-card__thumbnail" data-front-video-preview-src="https://syyejpyh6yupolshmbfitseg.jav.si/videos/previews/2026/05/0cbda8537039a6a484fc/0cbda8537039a6a484fc_preview.mp4">
+        <img src="/assets/front/media/video-thumb-placeholder.svg" data-front-lazy-src="/uploads/uploads/videos/thumbs/2023/12/13/0391975a393049082609ef683016031a.jpg" alt="Thumbnail for OKK-022 Wet and shiny, perfect fit divine competitive swimsuit Yui Hatano Enjoy the sight of a cute loli girl in a competitive swimsuit!" decoding="async" width="640" height="360">
+                    <span class="video-card__progress" aria-hidden="true" data-front-video-preview-progress><span></span></span>
+                                <span class="video-card__shade" aria-hidden="true"></span>
+        <span class="video-card__details"><strong>HD</strong>01:33:28</span>
+            </a>
+    <div class="video-card__copy">
+        <a href="/video/48682/okk-022" class="video-card__title" title="OKK-022 Wet and shiny, perfect fit divine competitive swimsuit Yui Hatano Enjoy the sight of a cute loli girl in a competitive swimsuit!">OKK-022 Wet and shiny, perfect fit divine competitive swimsuit Yui Hatano Enjoy the sight of a cute loli girl in a competitive swimsuit!</a>
+        <div class="video-card__meta">21.5K views <span aria-hidden="true">·</span> 1045 days ago</div>
+            </div>
+</article>
+        <article class="video-card">
+    <a href="/video/109657/simw-008" class="video-card__thumbnail" data-front-video-preview-src="https://syyejpyh6yupolshmbfitseg.jav.si/videos/previews/2026/06/VID-4D4C59E2/VID-4D4C59E2_preview.mp4">
+        <img src="/assets/front/media/video-thumb-placeholder.svg" data-front-lazy-src="/uploads/uploads/videos/thumbs/2026/06/14/e46228ede88df5d6711bd73f8c175d7c.jpg" alt="Thumbnail for SIMW-008 Yumi And Ruka" decoding="async" width="640" height="360">
+                    <span class="video-card__progress" aria-hidden="true" data-front-video-preview-progress><span></span></span>
+                                <span class="video-card__shade" aria-hidden="true"></span>
+        <span class="video-card__details"><strong>FHD</strong>01:19:44</span>
+            </a>
+    <div class="video-card__copy">
+        <a href="/video/109657/simw-008" class="video-card__title" title="SIMW-008 Yumi And Ruka">SIMW-008 Yumi And Ruka</a>
+        <div class="video-card__meta">78.8K views <span aria-hidden="true">·</span> 131 days ago</div>
+            </div>
+</article>
+        <article class="video-card">
+    <a href="/video/114430/huntc-608" class="video-card__thumbnail" data-front-video-preview-src="https://syyejpyh6yupolshmbfitseg.jav.si/videos/previews/2026/10/VID-2E991886/VID-2E991886_preview.mp4">
+        <img src="/assets/front/media/video-thumb-placeholder.svg" data-front-lazy-src="/uploads/uploads/videos/thumbs/2026/10/10/2777cdc625bc09a031560255c3bb81fb.jpg" alt="Thumbnail for HUNTC-608 Teacher! I Won&#039;t Understand Unless You Put It Into Practice! After-school Harassment Prevention Course For Students Who Commute By Train." decoding="async" width="640" height="360">
+                    <span class="video-card__progress" aria-hidden="true" data-front-video-preview-progress><span></span></span>
+                                <span class="video-card__shade" aria-hidden="true"></span>
+        <span class="video-card__details"><strong>FHD</strong>02:02:51</span>
+            </a>
+    <div class="video-card__copy">
+        <a href="/video/114430/huntc-608" class="video-card__title" title="HUNTC-608 Teacher! I Won&#039;t Understand Unless You Put It Into Practice! After-school Harassment Prevention Course For Students Who Commute By Train.">HUNTC-608 Teacher! I Won&#039;t Understand Unless You Put It Into Practice! After-school Harassment Prevention Course For Students Who Commute By Train.</a>
+        <div class="video-card__meta">30.9K views <span aria-hidden="true">·</span> 13 days ago</div>
+            </div>
+</article>
+        <article class="video-card">
+    <a href="/video/110576/piyo-237" class="video-card__thumbnail" data-front-video-preview-src="https://syyejpyh6yupolshmbfitseg.jav.si/videos/previews/2026/07/VID-5B7E2177/VID-5B7E2177_preview.mp4">
+        <img src="/assets/front/media/video-thumb-placeholder.svg" data-front-lazy-src="/uploads/uploads/videos/thumbs/2026/07/05/182c2d09d07be39bee6eea71a773d35d.jpg" alt="Thumbnail for PIYO-237 An Old Man Who Massages And Impregnates Girls With Real Sperm Without Them Noticing" decoding="async" width="640" height="360">
+                    <span class="video-card__progress" aria-hidden="true" data-front-video-preview-progress><span></span></span>
+                                <span class="video-card__shade" aria-hidden="true"></span>
+        <span class="video-card__details"><strong>FHD</strong>03:22:13</span>
+            </a>
+    <div class="video-card__copy">
+        <a href="/video/110576/piyo-237" class="video-card__title" title="PIYO-237 An Old Man Who Massages And Impregnates Girls With Real Sperm Without Them Noticing">PIYO-237 An Old Man Who Massages And Impregnates Girls With Real Sperm Without Them Noticing</a>
+        <div class="video-card__meta">32.4K views <span aria-hidden="true">·</span> 110 days ago</div>
+            </div>
+</article>
+        <article class="video-card">
+    <a href="/video/48679/miae-036" class="video-card__thumbnail" data-front-video-preview-src="https://syyejpyh6yupolshmbfitseg.jav.si/videos/previews/2026/05/b361e4103380fb34694b/b361e4103380fb34694b_preview.mp4">
+        <img src="/assets/front/media/video-thumb-placeholder.svg" data-front-lazy-src="/uploads/uploads/videos/thumbs/2023/12/13/ca75194bdf9ce1124035de2d2d2b1e5e.jpg" alt="Thumbnail for MIAE-036 Creampie sex with a beautiful girl whose rationality has been blown away Rika Mari" decoding="async" width="640" height="360">
+                    <span class="video-card__progress" aria-hidden="true" data-front-video-preview-progress><span></span></span>
+                                <span class="video-card__shade" aria-hidden="true"></span>
+        <span class="video-card__details"><strong>HD</strong>01:58:44</span>
+            </a>
+    <div class="video-card__copy">
+        <a href="/video/48679/miae-036" class="video-card__title" title="MIAE-036 Creampie sex with a beautiful girl whose rationality has been blown away Rika Mari">MIAE-036 Creampie sex with a beautiful girl whose rationality has been blown away Rika Mari</a>
+        <div class="video-card__meta">24.6K views <span aria-hidden="true">·</span> 1045 days ago</div>
+            </div>
+</article>
+        <article class="video-card">
+    <a href="/video/114738/mukd-581-reducing-mosaic" class="video-card__thumbnail" data-front-video-preview-src="https://syyejpyh6yupolshmbfitseg.jav.si/videos/previews/2026/10/VID-91D1FA13/VID-91D1FA13_preview.mp4">
+        <img src="/assets/front/media/video-thumb-placeholder.svg" data-front-lazy-src="/uploads/uploads/videos/thumbs/2026/10/18/8fad62d8d5eed48bd2e71eded0767a0c.jpg" alt="Thumbnail for MUKD-581 Student Couples Swap Partners For Sex: Youthful Swap Orgy" decoding="async" width="640" height="360">
+                    <span class="video-card__progress" aria-hidden="true" data-front-video-preview-progress><span></span></span>
+                            <span class="video-card__type">Reducing Mosaic</span>
+                        <span class="video-card__shade" aria-hidden="true"></span>
+        <span class="video-card__details"><strong>FHD</strong>02:45:15</span>
+            </a>
+    <div class="video-card__copy">
+        <a href="/video/114738/mukd-581-reducing-mosaic" class="video-card__title" title="MUKD-581 Student Couples Swap Partners For Sex: Youthful Swap Orgy">MUKD-581 Student Couples Swap Partners For Sex: Youthful Swap Orgy</a>
+        <div class="video-card__meta">49.9K views <span aria-hidden="true">·</span> 5 days ago</div>
+            </div>
+</article>
+        <article class="video-card">
+    <a href="/video/114482/snos-343-reducing-mosaic" class="video-card__thumbnail" data-front-video-preview-src="https://syyejpyh6yupolshmbfitseg.jav.si/videos/previews/2026/10/VID-2251B07E/VID-2251B07E_preview.mp4">
+        <img src="/assets/front/media/video-thumb-placeholder.svg" data-front-lazy-src="/uploads/uploads/videos/thumbs/2026/10/11/b43cd799839665717f26e15673bafc7b.jpg" alt="Thumbnail for SNOS-343 My Teaching Career Seems To Be Ending Because Of This Student With A Miraculous Face And Body That Makes Everyone Turn Their Heads" decoding="async" width="640" height="360">
+                    <span class="video-card__progress" aria-hidden="true" data-front-video-preview-progress><span></span></span>
+                            <span class="video-card__type">Reducing Mosaic</span>
+                        <span class="video-card__shade" aria-hidden="true"></span>
+        <span class="video-card__details"><strong>FHD</strong>01:57:38</span>
+            </a>
+    <div class="video-card__copy">
+        <a href="/video/114482/snos-343-reducing-mosaic" class="video-card__title" title="SNOS-343 My Teaching Career Seems To Be Ending Because Of This Student With A Miraculous Face And Body That Makes Everyone Turn Their Heads">SNOS-343 My Teaching Career Seems To Be Ending Because Of This Student With A Miraculous Face And Body That Makes Everyone Turn Their Heads</a>
+        <div class="video-card__meta">276.7K views <span aria-hidden="true">·</span> 12 days ago</div>
+            </div>
+</article>
+        <article class="video-card">
+    <a href="/video/114438/rlmp-022" class="video-card__thumbnail" data-front-video-preview-src="https://syyejpyh6yupolshmbfitseg.jav.si/videos/previews/2026/10/VID-8B928AC9/VID-8B928AC9_preview.mp4">
+        <img src="/assets/front/media/video-thumb-placeholder.svg" data-front-lazy-src="/uploads/uploads/videos/thumbs/2026/10/10/befdcca7941750f0d0829ac55e7545b5.jpg" alt="Thumbnail for RLMP-022 The Revenge Of Bullied Nerds... A Delinquent Gal JX Is Tied Up And Left With A Toy Shoved Up Her Pussy And Subjected To A Fixed Vibrator Rape." decoding="async" width="640" height="360">
+                    <span class="video-card__progress" aria-hidden="true" data-front-video-preview-progress><span></span></span>
+                                <span class="video-card__shade" aria-hidden="true"></span>
+        <span class="video-card__details"><strong>FHD</strong>02:04:33</span>
+            </a>
+    <div class="video-card__copy">
+        <a href="/video/114438/rlmp-022" class="video-card__title" title="RLMP-022 The Revenge Of Bullied Nerds... A Delinquent Gal JX Is Tied Up And Left With A Toy Shoved Up Her Pussy And Subjected To A Fixed Vibrator Rape.">RLMP-022 The Revenge Of Bullied Nerds... A Delinquent Gal JX Is Tied Up And Left With A Toy Shoved Up Her Pussy And Subjected To A Fixed Vibrator Rape.</a>
+        <div class="video-card__meta">35.1K views <span aria-hidden="true">·</span> 13 days ago</div>
+            </div>
+</article>
+        <article class="video-card">
+    <a href="/video/48671/ekdv-272" class="video-card__thumbnail" data-front-video-preview-src="https://syyejpyh6yupolshmbfitseg.jav.si/videos/previews/2026/05/fa9abbcbc211214cc0b8/fa9abbcbc211214cc0b8_preview.mp4">
+        <img src="/assets/front/media/video-thumb-placeholder.svg" data-front-lazy-src="/uploads/uploads/videos/thumbs/2023/12/13/d1ac812f6e878110955a632c4a0fa7ef.jpg" alt="Thumbnail for EKDV-272 INSTANT LOVE 42" decoding="async" width="640" height="360">
+                    <span class="video-card__progress" aria-hidden="true" data-front-video-preview-progress><span></span></span>
+                                <span class="video-card__shade" aria-hidden="true"></span>
+        <span class="video-card__details"><strong>HD</strong>01:59:57</span>
+            </a>
+    <div class="video-card__copy">
+        <a href="/video/48671/ekdv-272" class="video-card__title" title="EKDV-272 INSTANT LOVE 42">EKDV-272 INSTANT LOVE 42</a>
+        <div class="video-card__meta">17.2K views <span aria-hidden="true">·</span> 1045 days ago</div>
+            </div>
+</article>
+        <article class="video-card">
+    <a href="/video/113672/huntc-660" class="video-card__thumbnail" data-front-video-preview-src="https://syyejpyh6yupolshmbfitseg.jav.si/videos/previews/2026/09/VID-906A7717/VID-906A7717_preview.mp4">
+        <img src="/assets/front/media/video-thumb-placeholder.svg" data-front-lazy-src="/uploads/uploads/videos/thumbs/2026/09/18/a3212f7d88db59d498d0fdaaebc49fd1.jpg" alt="Thumbnail for HUNTC-660 A Daily Observation Of Schoolgirls In Swimsuits: In A Girls&#039; School In A Certain Town, Wearing Swimsuits To School Has Become Mandatory" decoding="async" width="640" height="360">
+                    <span class="video-card__progress" aria-hidden="true" data-front-video-preview-progress><span></span></span>
+                                <span class="video-card__shade" aria-hidden="true"></span>
+        <span class="video-card__details"><strong>FHD</strong>04:02:42</span>
+            </a>
+    <div class="video-card__copy">
+        <a href="/video/113672/huntc-660" class="video-card__title" title="HUNTC-660 A Daily Observation Of Schoolgirls In Swimsuits: In A Girls&#039; School In A Certain Town, Wearing Swimsuits To School Has Become Mandatory">HUNTC-660 A Daily Observation Of Schoolgirls In Swimsuits: In A Girls&#039; School In A Certain Town, Wearing Swimsuits To School Has Become Mandatory</a>
+        <div class="video-card__meta">57.1K views <span aria-hidden="true">·</span> 35 days ago</div>
+            </div>
+</article>
+        <article class="video-card">
+    <a href="/video/112941/dandya-047" class="video-card__thumbnail" data-front-video-preview-src="https://syyejpyh6yupolshmbfitseg.jav.si/videos/previews/2026/08/VID-DF5279D1/VID-DF5279D1_preview.mp4">
+        <img src="/assets/front/media/video-thumb-placeholder.svg" data-front-lazy-src="/uploads/uploads/videos/thumbs/2026/08/30/f765df726cbeccf8e252a4b296477997.jpg" alt="Thumbnail for DANDYA-047 A Chain Of Sex Encounters With Busty Girls Multiplying" decoding="async" width="640" height="360">
+                    <span class="video-card__progress" aria-hidden="true" data-front-video-preview-progress><span></span></span>
+                                <span class="video-card__shade" aria-hidden="true"></span>
+        <span class="video-card__details"><strong>FHD</strong>03:10:48</span>
+            </a>
+    <div class="video-card__copy">
+        <a href="/video/112941/dandya-047" class="video-card__title" title="DANDYA-047 A Chain Of Sex Encounters With Busty Girls Multiplying">DANDYA-047 A Chain Of Sex Encounters With Busty Girls Multiplying</a>
+        <div class="video-card__meta">48.2K views <span aria-hidden="true">·</span> 54 days ago</div>
+            </div>
+</article>
+            </div>
+            </aside>
+</section>
+
+<div class="watch-toast d-none" role="status" aria-live="polite" data-front-watch-alert></div>
+<div class="watch-toast d-none" role="status" aria-live="polite" data-front-playlist-alert></div>
+
+            </main>
+            <footer class="site-footer">
+    <div class="site-footer__content"><div class="site-footer__brand">    <a class="site-brand" href="/main" aria-label="Javtiful Home">
+                    <img class="site-brand__image" src="/uploads/site/logo/2026/04/27/215c2694af8e5a2a3b487b6711f22866.png" alt="Javtiful" width="110" height="28">
+            </a>
+<p>Watch more than 100,000 Full HD JAV Online For Free at Javtiful</p></div></div>
+    <div class="site-footer__copyright">
+        <span>© 2026 Javtiful · ALL RIGHTS RESERVED</span>
+        <div class="site-footer__links"><a href="/the-porn-dude" target="_blank" rel="noopener">The Porn Dude</a></div>
+    </div>
+</footer>
+        </div>
+    </div>
+</div>
+<div class="sheet-backdrop" data-sheet-close hidden></div>
+    <div class="navigation-sheet" id="sheet-videos" role="dialog" aria-modal="true" aria-labelledby="sheet-title-videos" hidden tabindex="-1">
+        <span class="navigation-sheet__handle" aria-hidden="true"></span>
+        <div class="navigation-sheet__heading"><span id="sheet-title-videos">Videos</span><button type="button" class="sheet-close" data-sheet-close aria-label="Close"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 6 12 12 M18 6 6 18"/></svg></button></div>
+        <div class="navigation-sheet__grid"><a href="/videos"><span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 10l5-3v10l-5-3z M3 7h12v10H3z"/></svg></span>Videos</a><a href="/censored"><span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 10l5-3v10l-5-3z M3 7h12v10H3z"/></svg></span>Censored</a><a href="/uncensored"><span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 10l5-3v10l-5-3z M3 7h12v10H3z"/></svg></span>Uncensored</a><a href="/reducing-mosaic"><span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 10l5-3v10l-5-3z M3 7h12v10H3z"/></svg></span>Reducing Mosaic</a><a href="/videos?sort=popular_week"><span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 10l5-3v10l-5-3z M3 7h12v10H3z"/></svg></span>Popular This Week</a><a href="/videos?sort=most_viewed"><span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 10l5-3v10l-5-3z M3 7h12v10H3z"/></svg></span>Most Viewed</a><a href="/videos?sort=most_liked"><span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 10l5-3v10l-5-3z M3 7h12v10H3z"/></svg></span>Most Liked</a></div>
+    </div>
+    <div class="navigation-sheet" id="sheet-browse" role="dialog" aria-modal="true" aria-labelledby="sheet-title-browse" hidden tabindex="-1">
+        <span class="navigation-sheet__handle" aria-hidden="true"></span>
+        <div class="navigation-sheet__heading"><span id="sheet-title-browse">Browse</span><button type="button" class="sheet-close" data-sheet-close aria-label="Close"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 6 12 12 M18 6 6 18"/></svg></button></div>
+        <div class="navigation-sheet__grid"><a href="/categories"><span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v7H4z M13 4h7v7h-7z M4 13h7v7H4z M13 13h7v7h-7z"/></svg></span>Categories</a><a href="/channels"><span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8h20v12H2z M8 3l4 5 4-5 M7 12v4 M11 12v4"/></svg></span>Channels</a><a href="/actresses"><span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg></span>Actresses</a></div>
+    </div>
+<nav class="mobile-dock" aria-label="Mobile navigation">
+    <a class="" href="/main"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 3l9 8v10h-6v-6H9v6H3z"/></svg><span>Home</span></a>
+    <button type="button" class="is-active" data-sheet-toggle="videos" aria-expanded="false" aria-controls="sheet-videos"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v14H4z M10 9l5 3-5 3z"/></svg><span>Videos</span></button>
+    <a class="dock-shorts" href="/shorts"><span class="dock-shorts__icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5v15a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 6 19.5z M10.2 8.6v6.8l5.4-3.4z"/></svg></span><span>Shorts</span></a>    <button type="button" class="" data-sheet-toggle="browse" aria-expanded="false" aria-controls="sheet-browse"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v7H4z M13 4h7v7h-7z M4 13h7v7H4z M13 13h7v7h-7z"/></svg><span>Browse</span></button>
+    <a href="/login" data-auth-open="login"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg><span>Profile</span></a>
+</nav>
+<div class="toast-region" data-toast-region role="status" aria-live="polite" aria-atomic="true">
+    <div class="toast-notification" data-toast hidden>
+        <span class="toast-notification__icon" aria-hidden="true"><svg class="toast-notification__check" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12.5 10 17 19 7.5"></polyline></svg><svg class="toast-notification__cross" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg></span>
+        <span class="toast-notification__message" data-toast-message></span>
+        <button type="button" class="toast-notification__undo" data-toast-undo hidden></button>
+    </div>
+</div>
+    <div class="auth-overlay" data-auth-overlay hidden>
+    <div class="auth-dialog" role="dialog" aria-modal="true" aria-labelledby="auth-title" aria-describedby="auth-description" tabindex="-1">
+        <button type="button" class="auth-dialog__close" data-auth-close aria-label="Close"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 6 12 12 M18 6 6 18"/></svg></button>
+        <div class="auth-dialog__heading">
+            <span class="auth-dialog__mark"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="m8 5 11 7-11 7z"/></svg></span>
+            <h2 id="auth-title" data-login-title="Welcome back" data-register-title="Create your account">Welcome back</h2>
+            <p id="auth-description" data-login-description="Login to continue watching and save favorites." data-register-description="Free forever. Follow channels, build playlists, pick up where you left off.">Login to continue watching and save favorites.</p>
+        </div>
+                    <div class="auth-tabs" role="tablist" aria-label="Account access">
+                <button type="button" role="tab" id="auth-login-tab" aria-controls="auth-login-panel" aria-selected="true" data-auth-tab="login">Login</button>
+                <button type="button" role="tab" id="auth-register-tab" aria-controls="auth-register-panel" aria-selected="false" tabindex="-1" data-auth-tab="register">Create account</button>
+            </div>
+                            <form class="auth-form" id="auth-login-panel" method="post" action="/login" data-auth-form="login" role="tabpanel" aria-labelledby="auth-login-tab" data-failure-message="Please review the form fields and try again." data-loading-label="Signing in...">
+                <div class="auth-message" data-auth-message role="alert" hidden></div>
+                                <label class="auth-field"><span>Username or Email</span><input type="text" name="identity" placeholder="you@example.com" autocomplete="username" required><small data-auth-error="identity"></small></label>
+                <label class="auth-field"><span>Password</span><span class="password-field"><input type="password" name="password" placeholder="••••••••" autocomplete="current-password" required><button type="button" data-password-toggle aria-label="Show password" aria-pressed="false">Show</button></span><small data-auth-error="password"></small></label>
+                                    <div class="auth-options"><label class="auth-checkbox"><input type="checkbox" name="remember" value="1" checked><span>Remember me</span></label><a href="/forgot-password">Forgot password?</a></div>
+                                                <button type="submit" class="auth-submit">Login</button>
+                                    <div class="auth-divider">New here?</div><button type="button" class="auth-secondary" data-auth-tab="register">Create an account</button>
+                            </form>
+                    <form class="auth-form" id="auth-register-panel" method="post" action="/register" data-auth-form="register" role="tabpanel" aria-labelledby="auth-register-tab" hidden data-failure-message="Please review the form fields and try again." data-loading-label="Processing...">
+                <div class="auth-message" data-auth-message role="alert" hidden></div>
+                                    <label class="auth-field"><span>Username</span><input type="text" name="username" placeholder="username123" autocomplete="username" minlength="6" maxlength="14" pattern="[A-Za-z0-9]+" required><small data-auth-error="username"></small></label>
+                                <label class="auth-field"><span>Email</span><input type="email" name="email" placeholder="you@example.com" autocomplete="email" required><small data-auth-error="email"></small></label>
+                <label class="auth-field"><span>Password</span><span class="password-field"><input type="password" name="password" placeholder="Minimum 8 characters" autocomplete="new-password" minlength="8" required><button type="button" data-password-toggle aria-label="Show password" aria-pressed="false">Show</button></span><small data-auth-error="password"></small></label>
+                                    <label class="auth-field"><span>Confirm Password</span><span class="password-field"><input type="password" name="password_confirmation" placeholder="Repeat your password" autocomplete="new-password" required><button type="button" data-password-toggle aria-label="Show password" aria-pressed="false">Show</button></span><small data-auth-error="password_confirmation"></small></label>
+                                                <button type="submit" class="auth-submit">Create account</button>
+                                    <p class="auth-switch">Already have an account? <button type="button" data-auth-tab="login">Login</button></p>
+                            </form>
+            </div>
+</div>
+
+            <script type="application/json" id="frontLoginModalConfig">
+            {"loginUrl":"/login","csrfUrl":"/csrf-token","forgotPasswordUrl":"/forgot-password","registerUrl":"/register","allowRegistration":true,"turnstile":{"enabled":false,"siteKey":"0x4AAAAAAA5gXceyX5rH5RZV","apiUrl":"https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"},"labels":{"login":"Login","welcomeBack":"Welcome back","loginCopy":"Use your username or email to sign in.","usernameOrEmail":"Username or Email","password":"Password","passwordPlaceholder":"Enter your password","rememberMe":"Remember me","forgotPassword":"Forgot password?","signingIn":"Signing in...","noAccount":"Don\u0027t have an account yet?","registerHere":"Register here","close":"Close","reviewFields":"Please review the form fields and try again.","loginFailed":"Login failed. Please try again."}}        </script>
+    
+    
+    <script src="/assets/front/bootstrap/js/bootstrap.bundle.min.js?v=d1cb1&amp;rev=1777289810"></script>
+    <script>
+        window.frontI18n = {"justNow":"Just now","member":"Member","replyTo":"Reply to :name","writeReply":"Write your reply...","postReply":"Post Reply","signInToReply":"Sign in","signInToReplySuffix":"to reply.","noComments":"No comments yet. Be the first to start the discussion.","threadCount":":count thread","threadsCount":":count threads","reactionUpdated":"Reaction updated.","reactionFailed":"Failed to save the reaction.","removeFromFavorites":"Remove from Favorites","addToFavorites":"Add to Favorites","favoriteUpdated":"Favorite updated.","favoriteFailed":"Failed to update the favorite.","playlistSelectOrCreate":"Select a playlist or create a new one first.","commentFailed":"Failed to submit the comment.","reportFailed":"Failed to send the report.","actressCorrectionRequired":"Enter a valid actress name, 2-120 characters.","actressCorrectionFailed":"Failed to submit the correction.","profileNoFile":"No file selected.","profileUploading":"Uploading...","profileSavePhoto":"Save Photo","profileUpdated":"Profile photo updated successfully.","profileChoosePhotoFirst":"Please choose a profile photo first.","profileUpdateFailed":"Failed to update the profile photo.","removeVideoConfirm":"Remove this video from the playlist?","removeVideoSuccess":"Video removed from playlist successfully.","removeVideoFailed":"Failed to remove the video from the playlist.","deletePlaylistConfirm":"Delete this playlist?","deletePlaylistSuccess":"Playlist deleted successfully.","deletePlaylistFailed":"Failed to delete the playlist.","subscriptionRemoved":"Subscription removed.","subscriptionRemoveFailed":"Subscription could not be removed.","playlistRequired":"Playlist name is required.","playlistActions":"Playlist actions","edit":"Edit","delete":"Delete","emptyPlaylistCount":"0 videos","playlistBadgeCount":":count Videos","noVideo":"No Video","creatingPlaylist":"Creating...","createPlaylistSubmit":"Create Playlist","playlistCreatedSuccess":"Playlist created successfully.","playlistCreateFailed":"Failed to create the playlist.","playlistUpdatedSuccess":"Playlist updated.","playlistUpdateFailed":"Failed to update the playlist.","premiumSubscribe":"Subscribe","premiumSelected":"Selected","premiumLabel":"Premium","premiumDays":":count days","premiumSavePercent":"Save :count%","premiumStandard":"Standard","premiumBestValue":"This plan offers better value per day than the other available plans.","premiumBaseValue":"This plan is used as the base price reference for discount comparison.","premiumPending":"Waiting for Payment","premiumUnderpaid":"Underpaid","downloadLinkUnavailable":"Download link could not be prepared.","downloadPreparing":"Preparing...","downloadGenerateFailed":"Failed to generate the download link.","noPlaylists":"No playlists yet. Create a new playlist below.","playlistContainsVideo":"This playlist already contains the video","opening":"Opening...","openingPayment":"Opening payment...","openingPaymentInvoice":"Opening payment invoice...","premiumSelectPlan":"Please select a premium plan first.","premiumCreateInvoiceFailed":"Failed to create the payment invoice.","watchCopy":"Copy","watchReply":"Reply","watchCopied":"Copied","themeLightMode":"Light mode","themeDarkMode":"Dark mode","themeSwitchToLight":"Switch to light mode","themeSwitchToDark":"Switch to dark mode"};
+    </script>
+            <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js"></script>
+            <script src="/assets/front/js/common.js?v=d1cb1&amp;rev=1791866330"></script>
+    <script src="/assets/front/js/layout.js?v=d1cb1&amp;rev=1791984860"></script>
+    <script src="/assets/front/js/toast.js?v=d1cb1&amp;rev=1791519628"></script>
+    <script id="watch-config" type="application/json">
+    {"csrfFieldHtml":"","csrfUrl":"/csrf-token","placeholderAvatarUrl":"/assets/front/media/profile-placeholder.png","commentsEndpoint":"/video/114939/comments","loginUrl":"/login","isLoggedIn":false,"playback":{"endpoint":"/video/114939/playback","ticket":"p1.114939.0.1792746677.55a2b6b068ca82c1eda95e68c5fa6a8b.50cacd9886cd326d370116ff2c7b63f4347fe06f0e94e5f761f07e374cfb86a8"},"videoTitle":"HUNTC-676 30 Seconds After Getting Home, It\u0027s \u0022Welcome Home\u0022 Followed By Immediate Penetration! My House Has Become A Hangout For Troubled Female Students","videoPoster":"/uploads/uploads/videos/thumbs/2026/10/23/afa78ef169f5b8762dc9491042bea134.jpg","playerBrand":{"name":"Javtiful","url":"https://javtiful.com/main","logoUrl":"https://javtiful.com/uploads/site/logo/2026/04/27/215c2694af8e5a2a3b487b6711f22866.png"},"playlist":{"endpoint":"/video/114939/playlist","items":[],"labels":{"title":"Add to Playlist","close":"Close","create":"Create New Playlist","placeholder":"My favorite videos","save":"Save to Playlist","noPlaylists":"No playlists yet. Create a new playlist below.","containsVideo":"This playlist already contains the video","saveFailed":"Failed to save the playlist."}},"cancelLabel":"Cancel"}</script>
+<script src="/assets/front/js/home-live.js?v=d1cb1&amp;rev=1791986551" async></script>
+<script src="/assets/front/js/watch-player.js?v=d1cb1&amp;rev=1792580156"></script>
+<script src="/assets/front/js/watch.js?v=d1cb1&amp;rev=1792580156"></script>
+<script src="/assets/front/js/watch-ui.js?v=d1cb1&amp;rev=1791519628"></script>
+            <script>
+(function () {
+    var validateEndpoint = "/referral/validate";
+    var linkEndpoint = "/referral/link/114939";
+    var canGenerateLink = false;
+    var hasReferralSession = false;
+    var minVisibleSeconds = 10;
+    var validateDelayMs = 12000;
+    var visibleSeconds = 0;
+    var played = false;
+    var sent = false;
+    var visibleTimer = window.setInterval(function () {
+        var hasVisibilityState = typeof document.visibilityState !== 'undefined';
+        var isHidden = typeof document.hidden !== 'undefined' && document.hidden;
+        if (!isHidden && (!hasVisibilityState || document.visibilityState === 'visible')) {
+            visibleSeconds += 1;
+        }
+    }, 1000);
+
+    function buildQuery(params) {
+        var parts = [];
+        var key;
+        for (key in params) {
+            if (Object.prototype.hasOwnProperty.call(params, key)) {
+                parts.push(encodeURIComponent(key) + '=' + encodeURIComponent(params[key]));
+            }
+        }
+        return parts.join('&');
+    }
+
+    function requestJson(url, callback) {
+        if (window.fetch) {
+            window.fetch(url, {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: { 'Accept': 'application/json' }
+            }).then(function (response) {
+                return response && response.ok ? response.json() : null;
+            }).then(function (data) {
+                callback(data || null);
+            }).catch(function () {
+                callback(null);
+            });
+            return;
+        }
+
+        try {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', url, true);
+            xhr.withCredentials = true;
+            xhr.setRequestHeader('Accept', 'application/json');
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState !== 4) {
+                    return;
+                }
+                if (xhr.status < 200 || xhr.status >= 300) {
+                    callback(null);
+                    return;
+                }
+                try {
+                    callback(JSON.parse(xhr.responseText || 'null'));
+                } catch (error) {
+                    callback(null);
+                }
+            };
+            xhr.send(null);
+        } catch (error) {
+            callback(null);
+        }
+    }
+
+    function sendRequest(url) {
+        if (window.fetch) {
+            window.fetch(url, {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: { 'Accept': 'application/json' }
+            }).catch(function () {});
+            return;
+        }
+
+        try {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', url, true);
+            xhr.withCredentials = true;
+            xhr.setRequestHeader('Accept', 'application/json');
+            xhr.send(null);
+        } catch (error) {}
+    }
+
+    function cookieValue(name) {
+        var parts = ('; ' + document.cookie).split('; ' + name + '=');
+        if (parts.length < 2) {
+            return '';
+        }
+        return decodeURIComponent(parts.pop().split(';').shift() || '');
+    }
+
+    function simpleHash(value) {
+        var hash = 0;
+        for (var i = 0; i < value.length; i += 1) {
+            hash = ((hash << 5) - hash) + value.charCodeAt(i);
+            hash |= 0;
+        }
+        return String(Math.abs(hash));
+    }
+
+    function hexByte(byte) {
+        var value = byte.toString(16);
+        return value.length === 1 ? '0' + value : value;
+    }
+
+    function browserFingerprint(callback) {
+        var raw = [
+            navigator.userAgent || '',
+            navigator.language || '',
+            (navigator.languages || []).join(','),
+            navigator.platform || '',
+            String(navigator.hardwareConcurrency || ''),
+            screen ? [screen.width, screen.height, screen.colorDepth].join('x') : '',
+            Intl.DateTimeFormat ? Intl.DateTimeFormat().resolvedOptions().timeZone || '' : ''
+        ].join('|');
+
+        if (!window.crypto || !window.crypto.subtle || !window.TextEncoder) {
+            callback(simpleHash(raw));
+            return;
+        }
+
+        window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw)).then(function (buffer) {
+            var bytes = new Uint8Array(buffer);
+            var output = '';
+            var i;
+            for (i = 0; i < bytes.length; i += 1) {
+                output += hexByte(bytes[i]);
+            }
+            callback(output);
+        }).catch(function () {
+            callback(simpleHash(raw));
+        });
+    }
+
+    function validateReferral() {
+        var visit = cookieValue('referral_visit');
+        if (sent || (!visit && !hasReferralSession) || visibleSeconds < minVisibleSeconds) {
+            return;
+        }
+
+        sent = true;
+        window.clearInterval(visibleTimer);
+        browserFingerprint(function (fingerprint) {
+            var params = {
+                fingerprint: fingerprint,
+                visible: String(Math.min(visibleSeconds, 3600)),
+                played: played ? '1' : '0'
+            };
+            if (visit) {
+                params.visit = visit;
+            }
+            var query = buildQuery(params);
+            sendRequest(validateEndpoint + '?' + query);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var player = document.getElementById('front-player');
+        if (player) {
+            var onPlay = function () {
+                played = true;
+                window.setTimeout(validateReferral, 3000);
+                player.removeEventListener('play', onPlay);
+            };
+            player.addEventListener('play', onPlay);
+        }
+
+        window.setTimeout(validateReferral, validateDelayMs);
+
+        if (!canGenerateLink) {
+            return;
+        }
+
+        var shareInput = document.querySelector('[data-front-copy-source="share-link"]');
+        if (!shareInput) {
+            return;
+        }
+
+        requestJson(linkEndpoint, function (data) {
+            if (data && data.url) {
+                shareInput.value = data.url;
+            }
+        });
+    });
+})();
+</script>
+            </body>
+
+</html>
