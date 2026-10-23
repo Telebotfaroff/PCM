@@ -384,24 +384,49 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
                 await app.send_message(message.chat.id, f"❌ Could not save GoFile key: {str(exc)[:200]}")
             return
         if message.from_user and message.from_user.id in awaiting_dump_channel:
+            # Forwarding a post is the most reliable way to identify private channels:
+            # their numeric ID may not be present in Pyrogram's peer cache yet.
+            chat = getattr(message, "forward_from_chat", None)
             value = (message.text or "").strip()
-            if value.startswith("/") or not (value.startswith("@") or value.lstrip("-").isdigit()):
-                await message.reply_text("Send a channel @username or numeric channel ID, for example @my_dump_channel or -1001234567890.")
-                return
+            if chat is None:
+                if value.startswith("/") or not (value.startswith("@") or value.lstrip("-").isdigit()):
+                    await message.reply_text(
+                        "For a private channel, forward one of its posts here. "
+                        "Or send its @username / numeric ID after adding this bot as an administrator."
+                    )
+                    return
+                try:
+                    chat = await app.get_chat(value)
+                except Exception as exc:
+                    await message.reply_text(
+                        "❌ I couldn't resolve that channel ID. For a private channel, add this bot as an administrator, "
+                        "then forward one of the channel's posts here so I can identify it. "
+                        f"Details: {str(exc)[:180]}"
+                    )
+                    return
             try:
-                chat = await app.get_chat(value)
                 me = await app.get_chat_member(chat.id, "me")
                 status = str(getattr(me, "status", "")).lower()
                 if "administrator" not in status and "owner" not in status and "creator" not in status:
-                    await message.reply_text("❌ Make the bot an administrator in that channel, then send the channel again.")
+                    await message.reply_text(
+                        "❌ The bot must be an administrator in that channel. Add it as an admin, "
+                        "then forward a channel post here again."
+                    )
                     return
                 await ensure_settings_loaded()
                 preferences["dump_channel"] = str(chat.id)
                 await persist_settings()
                 awaiting_dump_channel.discard(message.from_user.id)
-                await message.reply_text(f"✅ Dump channel saved: <b>{chat.title or chat.id}</b>\\nEnable it from /me when you're ready.")
+                await message.reply_text(
+                    f"✅ Dump channel saved: <b>{chat.title or chat.id}</b>\nEnable it from /me when you're ready."
+                )
             except Exception as exc:
-                await message.reply_text(f"❌ Could not access that channel: {str(exc)[:300]}. Check the ID and bot admin permissions.")
+                await message.reply_text(
+                    "❌ I found the channel, but Telegram wouldn't let me verify the bot's membership. "
+                    "Confirm the bot is an administrator and try forwarding a fresh post from that channel. "
+                    f"Details: {str(exc)[:180]}"
+                )
+
 
 
     @app.on_message(filters.command("jobs") & private_owner)
