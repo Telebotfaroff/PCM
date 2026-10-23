@@ -17,6 +17,7 @@ from pcm.providers.registry import get_provider, get_provider_by_name
 from pcm.resolver.url_model import URLValidationError, parse_url
 from pcm.transfers.downloader import download_media
 from pcm.transfers.media_metadata import prepare_video_metadata
+from pcm.jobs.repository import JobRepository
 
 _URL_PATTERN = re.compile(r"https?://[^\s<>]+", re.IGNORECASE)
 _MAX_TELEGRAM_BYTES = 2 * 1024 * 1024 * 1024
@@ -25,6 +26,7 @@ _MAX_TELEGRAM_BYTES = 2 * 1024 * 1024 * 1024
 def register_handlers(app: Client, owner_id: int) -> None:
     """Register private owner-only commands and media selection callbacks."""
     register_ytdlp_handler(app, owner_id)
+    jobs = JobRepository()
 
     # Diagnostic handler runs before owner-only handlers and never logs message contents.
     @app.on_message(filters.private, group=-1)
@@ -139,6 +141,56 @@ def register_handlers(app: Client, owner_id: int) -> None:
             except Exception as exc:
                 await message.reply_text(f"❌ Could not access that channel: {str(exc)[:300]}. Check the ID and bot admin permissions.")
 
+
+    @app.on_message(filters.command("jobs") & private_owner)
+    async def jobs_command(_: Client, message: Message) -> None:
+        try:
+            rows = await jobs.list_jobs(owner_id, limit=10)
+        except Exception as exc:
+            await message.reply_text(f"❌ Could not read job queue: {str(exc)[:250]}")
+            return
+        if not rows:
+            await message.reply_text("📭 No saved jobs yet.")
+            return
+        lines = ["📋 <b>Recent PCM jobs</b>"]
+        for row in rows:
+            lines.append(
+                f"#{row['id']} · <b>{row['status']}</b> · attempt {row['attempts']}/{row['max_attempts']}\n"
+                f"{str(row['source_url'])[:110]}"
+            )
+        lines.append("\nCommands: /pause ID · /resume ID · /cancel ID · /retry ID")
+        await message.reply_text("\n\n".join(lines))
+
+    async def job_action(message: Message, action: str) -> None:
+        parts = (message.text or "").split(maxsplit=1)
+        if len(parts) != 2 or not parts[1].isdigit():
+            await message.reply_text(f"Usage: /{action} JOB_ID")
+            return
+        try:
+            row = await jobs.request_action(owner_id, int(parts[1]), action)
+            if row is None:
+                await message.reply_text("❌ Job not found.")
+            else:
+                await message.reply_text(f"✅ Job #{row['id']}: {row['status']}")
+        except Exception as exc:
+            await message.reply_text(f"❌ Cannot {action} job: {str(exc)[:250]}")
+
+    @app.on_message(filters.command("pause") & private_owner)
+    async def pause_command(_: Client, message: Message) -> None:
+        await job_action(message, "pause")
+
+    @app.on_message(filters.command("resume") & private_owner)
+    async def resume_command(_: Client, message: Message) -> None:
+        await job_action(message, "resume")
+
+    @app.on_message(filters.command("cancel") & private_owner)
+    async def cancel_command(_: Client, message: Message) -> None:
+        await job_action(message, "cancel")
+
+    @app.on_message(filters.command("retry") & private_owner)
+    async def retry_command(_: Client, message: Message) -> None:
+        await job_action(message, "retry")
+
     @app.on_message(filters.command("start") & private_owner)
     async def start_handler(_: Client, message: Message) -> None:
         await message.reply_text(
@@ -154,7 +206,9 @@ def register_handlers(app: Client, owner_id: int) -> None:
             "PCM commands:\n"
             "/start — status and usage\n"
             "/help — this message\n"
-            "/resolve URL — discover related episodes\n\n"
+            "/resolve URL — discover related episodes\n"
+            "/jobs — show recent persistent jobs\n"
+            "/pause ID, /resume ID, /cancel ID, /retry ID — control jobs\n\n"
             "/ytdlp URL — download a supported video with yt-dlp\n"
             "Send an episode URL to download only that episode. Send a series URL to list its episodes and choose "
             "one episode or Download series to process the whole list sequentially."
@@ -270,8 +324,14 @@ def register_handlers(app: Client, owner_id: int) -> None:
                     f"🎬 <b>{title[:120]}</b>\\n"
                     "🏆 Highest available quality selected automatically."
                 )
-                await download_one(
-                    message.chat.id, status, provider.name, parsed.normalized, title
+                row = await jobs.enqueue(
+                    owner_id, parsed.normalized, job_type="provider_episode",
+                    destinations=["telegram"],
+                    options={"chat_id": message.chat.id, "provider": provider.name, "title": title},
+                )
+                await status.edit_text(
+                    f"📥 Queued job <b>#{row['id']}</b>\n{title[:140]}\n"
+                    "Use /jobs to check status or /cancel ID to cancel."
                 )
             except Exception as exc:
                 await status.edit_text(f"❌ Could not download episode: {str(exc)[:600]}")
@@ -527,3 +587,22 @@ def register_handlers(app: Client, owner_id: int) -> None:
             await status.edit_text(f"❌ Download failed: {str(exc)[:700]}")
         finally:
             choices.pop(token, None)
+
+    async def process_persistent_job(job: dict) -> None:
+        """Execute a claimed job using the existing provider transfer path."""
+        if job.get("job_type") != "provider_episode":
+            raise ValueError(f"Unsupported queued job type: {job.get('job_type')}")
+        options = job.get("options") or {}
+        if isinstance(options, str):
+            import json
+            options = json.loads(options)
+        chat_id = int(options["chat_id"])
+        provider_name = str(options["provider"])
+        episode_url = str(job["source_url"])
+        title = str(options.get("title") or "Episode")
+        status = await app.send_message(
+            chat_id=chat_id, text=f"🧰 Job #{job['id']} started: {title[:120]}"
+        )
+        await download_one(chat_id, status, provider_name, episode_url, title)
+
+    return process_persistent_job
