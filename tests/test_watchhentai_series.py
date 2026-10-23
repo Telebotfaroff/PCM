@@ -9,7 +9,7 @@ async def test_discover_episodes_includes_current_and_series_links(monkeypatch):
     series_url = "https://watchhentai.net/series/show/"
     episode_html = """
     <html><head><title>Show Episode 3</title></head><body>
-      <a href="/series/show/">Show series</a>
+      <div class="item item-all"><a href="/series/show/">Show series</a></div>
       <a class="tv-ep-card-link" href="/videos/show-episode-2/" title="Episode 2">Episode 2</a>
       <a class="tv-ep-card-link" href="/videos/show-episode-3/" title="Episode 3">Episode 3</a>
     </body></html>
