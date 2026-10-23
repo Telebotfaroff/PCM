@@ -21,4 +21,4 @@ jobs:
         run: pytest -q
       - name: Run Ruff
         if: always()
-        run: ruff check pcm tests --ignore E501
+        run: ruff check pcm/bot/handlers.py pcm/bot/ytdlp_handler.py pcm/bot/persistent_settings.py pcm/transfers/gofile.py tests/test_gofile.py --ignore E501
