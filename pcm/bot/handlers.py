@@ -277,6 +277,27 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
                 reply_markup=InlineKeyboardMarkup(buttons),
             )
             return
+        elif action.startswith("jobaction:"):
+            parts = action.split(":")
+            if len(parts) == 3 and parts[1] in {"pause", "resume", "cancel", "retry"} and parts[2].isdigit():
+                verb, jid = parts[1], int(parts[2])
+                try:
+                    row = await jobs.request_action(owner_id, jid, verb)
+                except Exception as exc:
+                    await query.answer(f"Action failed: {str(exc)[:150]}", show_alert=True)
+                    return
+                if not row:
+                    await query.answer("Job not found.", show_alert=True)
+                    return
+                await query.answer(f"Job #{jid}: {row['status']}")
+                await query.message.edit_text(
+                    f"✅ Job #{jid} updated: <b>{row['status']}</b>",
+                    reply_markup=InlineKeyboardMarkup([
+                        [InlineKeyboardButton("🔄 View job", callback_data=f"pcm_me:job:{jid}")],
+                        [InlineKeyboardButton("⬅️ Jobs", callback_data="pcm_me:jobs")],
+                    ]),
+                )
+                return
         elif action.startswith("job:"):
             parts = action.split(":")
             if len(parts) == 2 and parts[1].isdigit():
@@ -358,6 +379,29 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
     # Run after URL processing; a broad text handler in the same group would swallow URL messages.
     @app.on_message(filters.text & private_owner, group=2)
     async def dump_channel_setup(_: Client, message: Message) -> None:
+        if message.from_user and message.from_user.id in awaiting_gofile_token:
+            token = (message.text or "").strip()
+            try:
+                await message.delete()
+            except Exception:
+                pass
+            if not token or token.startswith("/") or len(token) > 500 or any(ch.isspace() for ch in token):
+                await app.send_message(message.chat.id, "❌ Invalid API key format. Open /me → GoFile → Set API key and try again.")
+                return
+            previous_token = preferences.get("gofile_token", "")
+            previous_guest = preferences.get("gofile_guest", False)
+            try:
+                await ensure_settings_loaded()
+                preferences["gofile_token"] = token
+                preferences["gofile_guest"] = False
+                await persist_settings()
+                awaiting_gofile_token.discard(message.from_user.id)
+                await app.send_message(message.chat.id, "✅ GoFile account key saved. The key was not echoed back.")
+            except Exception as exc:
+                preferences["gofile_token"] = previous_token
+                preferences["gofile_guest"] = previous_guest
+                await app.send_message(message.chat.id, f"❌ Could not save GoFile key: {str(exc)[:200]}")
+            return
         if message.from_user and message.from_user.id in awaiting_dump_channel:
             value = (message.text or "").strip()
             if value.startswith("/") or not (value.startswith("@") or value.lstrip("-").isdigit()):
