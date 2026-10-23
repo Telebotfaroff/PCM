@@ -13,17 +13,17 @@ from pcm.bot.progress import TransferProgress
 from pcm.bot.persistent_settings import load_preferences, save_preferences
 from pcm.bot.ytdlp_handler import register_ytdlp_handler
 from pcm.core.config import Settings
+from pcm.jobs.repository import JobRepository
 from pcm.providers.registry import get_provider, get_provider_by_name
 from pcm.resolver.url_model import URLValidationError, parse_url
 from pcm.transfers.downloader import download_media
 from pcm.transfers.media_metadata import prepare_video_metadata
-from pcm.jobs.repository import JobRepository
 
 _URL_PATTERN = re.compile(r"https?://[^\s<>]+", re.IGNORECASE)
 _MAX_TELEGRAM_BYTES = 2 * 1024 * 1024 * 1024
 
 
-def register_handlers(app: Client, owner_id: int) -> None:
+def register_handlers(app: Client, owner_id: int):
     """Register private owner-only commands and media selection callbacks."""
     register_ytdlp_handler(app, owner_id)
     jobs = JobRepository()
