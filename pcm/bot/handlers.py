@@ -149,20 +149,17 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
 
     def panel_keyboard() -> InlineKeyboardMarkup:
         destinations = preferences.get("destinations") or ["telegram"]
-        dest_label = "+".join(destinations).title()
+        dest_label = " + ".join(item.title() for item in destinations)
         token_set = not preferences.get("gofile_guest", False) and bool(
             str(preferences.get("gofile_token") or os.getenv("GOFILE_TOKEN", "")).strip()
         )
+        dump_label = "Configured" if preferences.get("dump_channel") else "Not set"
         return InlineKeyboardMarkup([
-            [InlineKeyboardButton(f"🏆 Auto highest quality: {'ON' if preferences['auto_quality'] else 'OFF'}", callback_data="pcm_me:quality")],
-            [InlineKeyboardButton(f"🗑 Delete download menu: {'ON' if preferences['delete_menu'] else 'OFF'}", callback_data="pcm_me:delete")],
-            [InlineKeyboardButton(f"📦 Dump channel upload: {'ON' if preferences['dump_enabled'] else 'OFF'}", callback_data="pcm_me:dump"),
-             InlineKeyboardButton("Set dump channel", callback_data="pcm_me:setdump")],
-            [InlineKeyboardButton(f"📤 Destination: {dest_label}", callback_data="pcm_me:destinations")],
-            [InlineKeyboardButton(f"☁️ GoFile: {'Account token' if token_set else 'Guest mode'}", callback_data="pcm_me:gofile")],
-            [InlineKeyboardButton("📋 Jobs & controls", callback_data="pcm_me:jobs"),
-             InlineKeyboardButton("❔ Help", callback_data="pcm_me:help")],
-            [InlineKeyboardButton("🔄 Refresh", callback_data="pcm_me:refresh")],
+            [InlineKeyboardButton("📤 Upload destination", callback_data="pcm_me:destinations"), InlineKeyboardButton("☁️ GoFile settings", callback_data="pcm_me:gofile")],
+            [InlineKeyboardButton(f"🏆 Highest quality: {'ON' if preferences['auto_quality'] else 'OFF'}", callback_data="pcm_me:quality"), InlineKeyboardButton(f"🗑 Delete menu: {'ON' if preferences['delete_menu'] else 'OFF'}", callback_data="pcm_me:delete")],
+            [InlineKeyboardButton(f"📦 Dump uploads: {'ON' if preferences['dump_enabled'] else 'OFF'}", callback_data="pcm_me:dump"), InlineKeyboardButton(f"🎯 Dump channel: {dump_label}", callback_data="pcm_me:setdump")],
+            [InlineKeyboardButton("📋 Jobs & controls", callback_data="pcm_me:jobs"), InlineKeyboardButton("❔ Help", callback_data="pcm_me:help")],
+            [InlineKeyboardButton("🔄 Refresh panel", callback_data="pcm_me:refresh")],
         ])
 
     async def show_panel(message: Message, *, edit: bool = False) -> None:
