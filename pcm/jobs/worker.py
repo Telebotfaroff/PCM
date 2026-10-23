@@ -51,7 +51,7 @@ async def run_worker(repository: JobRepository, processor: JobProcessor, *, poll
                 else:
                     error = processor_task.exception()
                     if error is not None:
-                        logger.exception("PCM job failed id=%s", job_id, exc_info=error)
+                        logger.error("PCM job failed id=%s: %s", job_id, error, exc_info=(type(error), error, error.__traceback__))
                         status = await repository.finish(job_id, worker_id, error=str(error))
                     else:
                         status = await repository.finish(job_id, worker_id)
