@@ -116,8 +116,8 @@ def register_handlers(app: Client, owner_id: int) -> None:
             ]),
         )
 
-    # Keep this catch-all text handler in a later group so it cannot swallow /start, /help, /me, or other commands.
-    @app.on_message(filters.text & private_owner, group=1)
+    # Run after URL processing; a broad text handler in the same group would swallow URL messages.
+    @app.on_message(filters.text & private_owner, group=2)
     async def dump_channel_setup(_: Client, message: Message) -> None:
         if message.from_user and message.from_user.id in awaiting_dump_channel:
             value = (message.text or "").strip()
