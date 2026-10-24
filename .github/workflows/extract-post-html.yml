@@ -1,0 +1,142 @@
+name: Extract post HTML with Playwright
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: extract-post-html
+  cancel-in-progress: false
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Playwright and Chromium
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Extract rendered post HTML
+        run: |
+          mkdir -p artifacts/post-html
+          cat > /tmp/extract_posts.py <<'PY'
+          import asyncio
+          import hashlib
+          import json
+          import re
+          from datetime import datetime, timezone
+          from pathlib import Path
+          from urllib.parse import urlparse
+
+          from playwright.async_api import async_playwright
+
+          URLS = [
+              "https://hanime1.me/watch?v=408297",
+              "https://hanime.red/mahou-touki-lilustear-episode-4",
+              "https://porn4days.pw/video/lucy-mochi-seth-gamble-leo-vice-elias-cash-mighty-dee-girthmasterr-mega-perv-episode-3-brazzers",
+              "https://movie4days.com/video/the-drifter-digital-playground-2026-webdl-720p",
+              "https://321tube.com/video/faphouse-24-06-01-diana-rider-listen-to-me-stepsister-in-this-outfit-just-for-my-dick-not-for-work-whore-xxx-1080p-mp4p2p-xc",
+              "https://bestporn4free.com/evil-angel-luna-bunny/",
+              "https://netfapx.com/2020/06/share/",
+              "https://analbabes.porn/video/nicole-vaunt-my-first-anal-journey-with-cumshot/",
+          ]
+
+          OUT = Path("artifacts/post-html")
+          OUT.mkdir(parents=True, exist_ok=True)
+
+          def filename_for(url: str) -> str:
+              parsed = urlparse(url)
+              label = re.sub(r"[^a-zA-Z0-9._-]+", "-", f"{parsed.netloc}-{parsed.path.strip('/')}")
+              label = label.strip("-.")[:90] or "post"
+              digest = hashlib.sha256(url.encode()).hexdigest()[:10]
+              return f"{label}-{digest}"
+
+          async def main():
+              results = []
+              async with async_playwright() as p:
+                  browser = await p.chromium.launch()
+                  context = await browser.new_context(
+                      user_agent=(
+                          "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                          "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+                      ),
+                      viewport={"width": 1365, "height": 900},
+                      ignore_https_errors=False,
+                  )
+                  for index, url in enumerate(URLS, start=1):
+                      page = await context.new_page()
+                      name = filename_for(url)
+                      html_path = OUT / f"{name}.html"
+                      result = {
+                          "index": index,
+                          "requested_url": url,
+                          "html_file": str(html_path),
+                          "captured_at_utc": datetime.now(timezone.utc).isoformat(),
+                      }
+                      try:
+                          response = await page.goto(
+                              url,
+                              wait_until="domcontentloaded",
+                              timeout=60000,
+                          )
+                          try:
+                              await page.wait_for_load_state("networkidle", timeout=10000)
+                          except Exception:
+                              pass
+                          await page.wait_for_timeout(1500)
+                          html = await page.content()
+                          html_path.write_text(html, encoding="utf-8")
+                          result.update({
+                              "final_url": page.url,
+                              "http_status": response.status if response else None,
+                              "title": await page.title(),
+                              "html_bytes": len(html.encode("utf-8")),
+                              "status": "captured",
+                          })
+                      except Exception as exc:
+                          result.update({"status": "error", "error": str(exc)[:1000], "final_url": page.url})
+                          try:
+                              html = await page.content()
+                              if html.strip():
+                                  html_path.write_text(html, encoding="utf-8")
+                                  result["html_bytes"] = len(html.encode("utf-8"))
+                                  result["partial_html_saved"] = True
+                          except Exception:
+                              pass
+                      finally:
+                          await page.close()
+                      results.append(result)
+                      print(f"[{index}/{len(URLS)}] {result['status']}: {url}")
+
+                  await context.close()
+                  await browser.close()
+
+              (OUT / "results.json").write_text(
+                  json.dumps(results, indent=2, ensure_ascii=False),
+                  encoding="utf-8",
+              )
+              successes = sum(item["status"] == "captured" for item in results)
+              print(f"Captured {successes}/{len(URLS)} pages. Results saved to {OUT / 'results.json'}")
+
+          asyncio.run(main())
+          PY
+          python /tmp/extract_posts.py
+
+      - name: Upload extracted HTML artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pcm-post-html-${{ github.run_number }}
+          path: artifacts/post-html/
+          if-no-files-found: error
+          retention-days: 14
