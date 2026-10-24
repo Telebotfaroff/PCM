@@ -1,4 +1,4 @@
-"""Provider registry used by Telegram handlers to route supported URLs."""
+""Provider registry used by Telegram handlers to route supported URLs.""
 from __future__ import annotations
 
 from typing import Protocol
@@ -23,10 +23,26 @@ class Provider(Protocol):
 
 
 def _load_providers() -> list[Provider]:
-    # Add new provider adapters here. Keep site-specific parsing in each adapter.
+    # Register independent post adapters without changing the existing WatchHentai provider.
+    from pcm.providers.analbabes import AnalBabesProvider
+    from pcm.providers.bestporn4free import BestPorn4FreeProvider
+    from pcm.providers.hanime_red import HanimeRedProvider
+    from pcm.providers.movie4days import Movie4DaysProvider
+    from pcm.providers.netfapx import NetfapxProvider
+    from pcm.providers.porn4days import Porn4DaysProvider
+    from pcm.providers.tube321 import Tube321Provider
     from pcm.providers.watchhentai_adapter import WatchHentaiProvider
 
-    return [WatchHentaiProvider()]
+    return [
+        WatchHentaiProvider(),
+        HanimeRedProvider(),
+        Porn4DaysProvider(),
+        Movie4DaysProvider(),
+        Tube321Provider(),
+        BestPorn4FreeProvider(),
+        NetfapxProvider(),
+        AnalBabesProvider(),
+    ]
 
 
 _PROVIDERS = _load_providers()
