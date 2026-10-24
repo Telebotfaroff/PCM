@@ -1,4 +1,4 @@
-""Provider registry used by Telegram handlers to route supported URLs.""
+"""Provider registry used by Telegram handlers to route supported URLs."""
 from __future__ import annotations
 
 from typing import Protocol
