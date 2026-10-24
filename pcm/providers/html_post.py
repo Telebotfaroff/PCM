@@ -6,7 +6,6 @@ embedded-player URL as a downloadable media URL.
 """
 from __future__ import annotations
 
-import asyncio
 import ipaddress
 import re
 import socket
