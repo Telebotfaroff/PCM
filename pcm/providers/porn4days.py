@@ -4,5 +4,5 @@ from pcm.providers.html_post import HtmlPostProvider
 
 class Porn4DaysProvider(HtmlPostProvider):
     name = "porn4days"
-    display_name = "POR N4DAYS"
+    display_name = "PORN4DAYS"
     hosts = {"porn4days.pw"}
