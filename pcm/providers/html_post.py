@@ -91,7 +91,12 @@ class _PostHtmlParser(HTMLParser):
             src = attr.get("src") or attr.get("data-src") or ""
             if src and not src.lower().startswith(("javascript:", "data:")):
                 media_type = attr.get("type", "")
-                label = attr.get("label") or attr.get("data-quality") or media_type or "Direct media"
+                label = (
+                    attr.get("label")
+                    or attr.get("data-quality")
+                    or media_type
+                    or "Direct media"
+                )
                 self._add_media(src, label, media_type)
 
     def handle_endtag(self, tag: str) -> None:
@@ -193,7 +198,10 @@ async def fetch_post_html(url: str, timeout: float = 25.0) -> tuple[str, str]:
     """Fetch one public HTML page with manually validated redirects."""
     current = _assert_public_http_url(url)
     headers = {
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36",
+        "User-Agent": (
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+            "Chrome/124.0 Safari/537.36"
+        ),
         "Accept": "text/html,application/xhtml+xml,*/*;q=0.8",
     }
     async with httpx.AsyncClient(
@@ -259,7 +267,8 @@ class HtmlPostProvider:
                 if page.embed_urls else " No direct media source was found."
             )
             raise HtmlPostResolveError(
-                f"{self.display_name} metadata was read, but direct download resolution is not supported yet."
+                f"{self.display_name} metadata was read, but direct download "
+                "resolution is not supported yet."
                 + embed_note
             )
         sources = []
