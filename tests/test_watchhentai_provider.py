@@ -4,7 +4,7 @@ from pcm.providers.watchhentai import classify_url, parse_file, parse_html
 
 
 def test_parse_saved_watchhentai_page() -> None:
-    fixture = Path(__file__).parents[1] / "providerhtml" / "watchhentai.net-04da56a1.html"
+    fixture = Path(__file__).parent / "fixtures" / "watchhentai-episode.html"
     page = parse_file(fixture)
 
     assert page.title == "The Lonely Snow Widow and the Cursed Ring – Episode 3 Uncensored"
