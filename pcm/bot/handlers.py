@@ -148,11 +148,6 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
         await message.reply_text(f"✅ Default destination set to: {', '.join(mapping[target])}")
 
     def panel_keyboard() -> InlineKeyboardMarkup:
-        destinations = preferences.get("destinations") or ["telegram"]
-        dest_label = " + ".join(item.title() for item in destinations)
-        token_set = not preferences.get("gofile_guest", False) and bool(
-            str(preferences.get("gofile_token") or os.getenv("GOFILE_TOKEN", "")).strip()
-        )
         dump_label = "Configured" if preferences.get("dump_channel") else "Not set"
         return InlineKeyboardMarkup([
             [InlineKeyboardButton("📤 Upload destination", callback_data="pcm_me:destinations"), InlineKeyboardButton("☁️ GoFile settings", callback_data="pcm_me:gofile")],
@@ -163,7 +158,7 @@ def register_handlers(app: Client, owner_id: int) -> Callable[[dict], Awaitable[
         ])
 
     async def show_panel(message: Message, *, edit: bool = False) -> None:
-        destinations = ", ".join((preferences.get("destinations") or ["telegram"]))
+        destinations = ", ".join(preferences.get("destinations") or ["telegram"])
         token_set = not preferences.get("gofile_guest", False) and bool(
             str(preferences.get("gofile_token") or os.getenv("GOFILE_TOKEN", "")).strip()
         )
