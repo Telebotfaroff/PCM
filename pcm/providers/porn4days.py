@@ -1,4 +1,4 @@
-"""Independent POR N4DAYS post-page provider."""
+"""Independent PORN4DAYS post-page provider."""
 from pcm.providers.html_post import HtmlPostProvider
 
 
